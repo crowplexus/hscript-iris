@@ -21,7 +21,7 @@ class Iris {
 	/**
 	 * Dictionary with stored instances of scripts.
 	**/
-	public static var instances:StringMap<IrisScript> = new StringMap<IrisScript>();
+	public static var instances:StringMap<Iris> = new StringMap<Iris>();
 
 	/**
 	 * Script Extensions that should be used to look for script files and execute them.
