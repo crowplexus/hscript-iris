@@ -70,11 +70,6 @@ class Iris {
 	 * @param file      the file (preferably with its path, e.g: assets/scripts/myScript.hx)
 	 */
 	public function new(file:String, ?rules:InitRules):Void {
-		#if !hscript
-		throw "[Iris:new()]: Please make sure you have \"hscript\" defined on your project/build file.";
-		return;
-		#end
-
 		if (rules == null)
 			rules = {autoRun: true, preset: true};
 
@@ -101,11 +96,6 @@ class Iris {
 	 * Executes this script
 	**/
 	public function execute():Void {
-		#if !hscript
-		throw "[Iris:execute()]: Please make sure you have \"hscript\" defined on your project/build file.";
-		return;
-		#end
-
 		if (running || interp == null) {
 			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
 			return;
@@ -132,11 +122,6 @@ class Iris {
 	 * Appends Default Classes/Enums for the Script to use.
 	**/
 	public function preset():Void {
-		#if !hscript
-		throw "[Iris:preset()]: Please make sure you have \"hscript\" defined on your project/build file.";
-		return;
-		#end
-
 		set("Math", Math);
 		set("StringTools", StringTools);
 	}
@@ -146,11 +131,6 @@ class Iris {
 	 * @param field 	The field that needs to be looked for.
 	 */
 	public function get(field:String):Dynamic {
-		#if !hscript
-		throw "[Iris:get()]: Please make sure you have \"hscript\" defined on your project/build file.";
-		return false;
-		#end
-
 		if (interp == null)
 			trace("[Iris:get()]: " + interpErrStr + ", returning false...");
 		return interp != null ? interp.variables.get(field) : false;
@@ -163,11 +143,6 @@ class Iris {
 	 * @param allowOverride If set to true, when setting the new field, we will ignore any previously set fields of the same name.
 	 */
 	public function set(name:String, value:Dynamic, allowOverride:Bool = false):Void {
-		#if !hscript
-		throw "[Iris:set()]: Please make sure you have \"hscript\" defined on your project/build file.";
-		return;
-		#end
-
 		if (interp == null) {
 			trace("[Iris:set()]: " + interpErrStr + ", so variables cannot be set.");
 			return;
@@ -190,11 +165,6 @@ class Iris {
 	 * @param args      The arguments that the method needs.
 	 */
 	public function call(fun:String, ?args:Array<Dynamic>):Void {
-		#if !hscript
-		throw "[Iris:call()]: Please make sure you have \"hscript\" defined on your project/build file.";
-		return;
-		#end
-
 		if (interp == null) {
 			trace("[Iris:call()]: " + interpErrStr + ", so functions cannot be called.");
 			return;
@@ -231,8 +201,8 @@ class Iris {
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public function destroy():Void {
-		if (Iris.instances.exists(this.file))
-			Iris.instances.remove(this.file);
+		if (Iris.instances.exists(scriptName))
+			Iris.instances.remove(scriptName);
 
 		running = false;
 		interp = null;
