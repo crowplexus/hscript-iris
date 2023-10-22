@@ -1,4 +1,4 @@
-package crowplexus.pscript;
+package crowplexus.iris;
 
 import haxe.ds.StringMap;
 import hscript.*;
@@ -6,7 +6,7 @@ import hscript.*;
 /**
  * Initialization Rules for a Script
 **/
-typedef PInitRules = {
+typedef InitRules = {
 	var autoRun:Bool;
 	var preset:Bool;
 }
@@ -17,11 +17,11 @@ typedef PInitRules = {
  * 
  * It is highly recommended that you override this class to add custom defualt variables and such.
 **/
-class PScript {
+class Iris {
 	/**
 	 * Dictionary with stored instances of scripts.
 	**/
-	public static var instances:StringMap<PScript> = new StringMap<PScript>();
+	public static var instances:StringMap<IrisScript> = new StringMap<IrisScript>();
 
 	/**
 	 * Script Extensions that should be used to look for script files and execute them.
@@ -36,7 +36,7 @@ class PScript {
 	/**
 	 * The current initialization rules for `this` script.
 	**/
-	public var ruleSet:PInitRules = null;
+	public var ruleSet:InitRules = null;
 
 	/**
 	 * The file path for `this` script.
@@ -69,9 +69,9 @@ class PScript {
 	 * 
 	 * @param file      the file (preferably with its path, e.g: assets/scripts/myScript.hx)
 	 */
-	public function new(file:String, ?rules:PInitRules):Void {
+	public function new(file:String, ?rules:InitRules):Void {
 		#if !hscript
-		throw "[PScript:new()]: Please make sure you have \"hscript\" defined on your project/build file.";
+		throw "[Iris:new()]: Please make sure you have \"hscript\" defined on your project/build file.";
 		return;
 		#end
 
@@ -94,7 +94,7 @@ class PScript {
 			if (rules.autoRun)
 				execute();
 		} else
-			trace('[PScript:new()]: Failed to initialize script, File "${file}" does not exist in filesystem.');
+			trace('[Iris:new()]: Failed to initialize script, File "${file}" does not exist in filesystem.');
 	}
 
 	/**
@@ -102,19 +102,19 @@ class PScript {
 	**/
 	public function execute():Void {
 		#if !hscript
-		throw "[PScript:execute()]: Please make sure you have \"hscript\" defined on your project/build file.";
+		throw "[Iris:execute()]: Please make sure you have \"hscript\" defined on your project/build file.";
 		return;
 		#end
 
 		if (running || interp == null) {
-			trace("[PScript:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
+			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
 			return;
 		}
 
 		final str:String = #if sys sys.io.File.getContent(file) #elseif openfl openfl.utils.Assets.getText(file) #end;
 		interp.execute(parser.parseString(str));
 		// gonna chane this to also include the extension later, should work for now.
-		PScript.instances.set(file.substr(0, file.lastIndexOf(".")), this);
+		Iris.instances.set(file.substr(0, file.lastIndexOf(".")), this);
 		scriptName = file.substr(0, file.lastIndexOf("."));
 
 		#if hscriptPos
@@ -133,7 +133,7 @@ class PScript {
 	**/
 	public function preset():Void {
 		#if !hscript
-		throw "[PScript:preset()]: Please make sure you have \"hscript\" defined on your project/build file.";
+		throw "[Iris:preset()]: Please make sure you have \"hscript\" defined on your project/build file.";
 		return;
 		#end
 
@@ -147,12 +147,12 @@ class PScript {
 	 */
 	public function get(field:String):Dynamic {
 		#if !hscript
-		throw "[PScript:get()]: Please make sure you have \"hscript\" defined on your project/build file.";
+		throw "[Iris:get()]: Please make sure you have \"hscript\" defined on your project/build file.";
 		return false;
 		#end
 
 		if (interp == null)
-			trace("[PScript:get()]: " + interpErrStr + ", returning false...");
+			trace("[Iris:get()]: " + interpErrStr + ", returning false...");
 		return interp != null ? interp.variables.get(field) : false;
 	}
 
@@ -164,12 +164,12 @@ class PScript {
 	 */
 	public function set(name:String, value:Dynamic, allowOverride:Bool = false):Void {
 		#if !hscript
-		throw "[PScript:set()]: Please make sure you have \"hscript\" defined on your project/build file.";
+		throw "[Iris:set()]: Please make sure you have \"hscript\" defined on your project/build file.";
 		return;
 		#end
 
 		if (interp == null) {
-			trace("[PScript:set()]: " + interpErrStr + ", so variables cannot be set.");
+			trace("[Iris:set()]: " + interpErrStr + ", so variables cannot be set.");
 			return;
 		}
 
@@ -181,7 +181,7 @@ class PScript {
 					interp.variables.set(name, value);
 			}
 		} catch (e:haxe.Exception)
-			hPrint("[PScript:set()]: We are sorry, something went terribly wrong, Error: " + e);
+			hPrint("[Iris:set()]: We are sorry, something went terribly wrong, Error: " + e);
 	}
 
 	/**
@@ -191,12 +191,12 @@ class PScript {
 	 */
 	public function call(fun:String, ?args:Array<Dynamic>):Void {
 		#if !hscript
-		throw "[PScript:call()]: Please make sure you have \"hscript\" defined on your project/build file.";
+		throw "[Iris:call()]: Please make sure you have \"hscript\" defined on your project/build file.";
 		return;
 		#end
 
 		if (interp == null) {
-			trace("[PScript:call()]: " + interpErrStr + ", so functions cannot be called.");
+			trace("[Iris:call()]: " + interpErrStr + ", so functions cannot be called.");
 			return;
 		}
 
@@ -209,9 +209,9 @@ class PScript {
 			try {
 				Reflect.callMethod(null, interp.variables.get(fun), args);
 			} catch (e:haxe.Exception)
-				hPrint("[PScript:call()]: We are sorry, something went terribly wrong, Error: " + e);
+				hPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
 		} else
-			hPrint("[PScript:call()]: Function \"" + fun + "\" does not exist anywhere in your script.");
+			hPrint("[Iris:call()]: Function \"" + fun + "\" does not exist anywhere in your script.");
 	}
 
 	/**
@@ -220,19 +220,19 @@ class PScript {
 	 */
 	public function exists(field:String):Bool {
 		if (interp == null)
-			trace("[PScript:exists()]: " + interpErrStr + ", returning false...");
+			trace("[Iris:exists()]: " + interpErrStr + ", returning false...");
 		return interp != null ? interp.variables.exists(field) : false;
 	}
 
 	/**
 	 * Destroys the current instance of this script
-	 * along with its parser, and also removes it from the `PScript.instances` dictionary.
+	 * along with its parser, and also removes it from the `Iris.instances` dictionary.
 	 * 
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public function destroy():Void {
-		if (PScript.instances.exists(this.file))
-			PScript.instances.remove(this.file);
+		if (Iris.instances.exists(this.file))
+			Iris.instances.remove(this.file);
 
 		running = false;
 		interp = null;
@@ -240,15 +240,15 @@ class PScript {
 	}
 
 	/**
-	 * Destroys every single script found within the `PScript.instances` dictionary.
+	 * Destroys every single script found within the `Iris.instances` dictionary.
 	 * 
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public static function destroyAll():Void {
-		for (key in PScript.instances.keys()) {
-			if (PScript.instances.get(key) == null)
+		for (key in Iris.instances.keys()) {
+			if (Iris.instances.get(key) == null)
 				continue;
-			PScript.instances.get(key).destroy();
+			Iris.instances.get(key).destroy();
 		}
 	}
 

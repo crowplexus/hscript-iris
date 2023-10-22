@@ -1,4 +1,4 @@
-# PScript
+# HScript Iris
 
 ---
 
@@ -6,11 +6,21 @@ a [HScript](https://github.com/HaxeFoundation/hscript) extension made to make th
 
 ---
 
+# INSTALLATION
+
+Currently, HScript Iris is not available in the haxelib, you can install it by running the follwoing command
+
+```
+haxelib git hscript-iris https://github.com/crowplexus/flowerscript/
+```
+
+---
+
 # USAGE
 
 ---
 
-Initializing a PScript should be fairly easy and very much self-explnatory
+Initializing a Iris Script should be fairly easy and very much self-explnatory
 
 ```haxe
 // *
@@ -18,7 +28,7 @@ Initializing a PScript should be fairly easy and very much self-explnatory
 // *
 
 function init() {
-    trace("Hello from PScript");
+    trace("Hello from Iris");
 }
 
 function countUpTo(number:Int) {
@@ -30,18 +40,18 @@ function countUpTo(number:Int) {
 // * src/Main.hx
 // *
 
-import pscript.PScript;
+import crowplexus.iris.Iris;
 
 class Main {
     static function main():Void {
         // reminder that the rules are completely optional.
-        final rules:PInitRules = {autoRun: false, preset: true};
-        var myScript:PScript = new PScript("assets/scripts/hi.hx", rules);
+        final rules:InitRules = {autoRun: false, preset: true};
+        var myScript:Iris = new Iris("assets/scripts/hi.hx", rules);
 
         // this is necessary in case the `autoRun` rule is disabled when initializing the script, if not it will initialize by itself.
         myScript.execute();
 
-        myScript.call("sayHello"); // prints "Hello from PScript"
+        myScript.call("sayHello"); // prints "Hello from Iris"
         myScript.call("countUpTo", [5]); // prints "1, 2, 3, 4, 5"
     }
 }
