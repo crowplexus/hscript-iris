@@ -11,7 +11,7 @@ a [HScript](https://github.com/HaxeFoundation/hscript) extension made to make th
 Currently, HScript Iris is not available in the haxelib, you can install it by running the follwoing command
 
 ```
-haxelib git hscript-iris https://github.com/crowplexus/flowerscript/
+haxelib git hscript-iris https://github.com/crowplexus/hscript-iris/
 ```
 
 ---
