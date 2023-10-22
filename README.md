@@ -14,13 +14,12 @@ Currently, Iris is not available in the haxelib, you can install it by running t
 haxelib git hscript-iris https://github.com/crowplexus/hscript-iris/
 ```
 
-Once this is done, go to your Project File, whether that be a build.hxml for Haxe Projects, or Project.xml for OpenFL and Flixel projects, and add both `hscript` and `hscript-iris` to your libraries
+Once this is done, go to your Project File, whether that be a build.hxml for Haxe Projects, or Project.xml for OpenFL and Flixel projects, and add `hscript-iris` to your libraries
 
 ---
 
 ### Haxe Project Example
 ```hxml
---library hscript
 --library hscript-iris
 
 # this is optional and can be added if wanted
@@ -31,7 +30,6 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 ### OpenFL / Flixel Project Example
 
 ```xml
-<haxelib name="hscript" />
 <haxelib name="hscript-iris" />
 <haxedef name="hscriptPos" />
 ```
@@ -67,8 +65,9 @@ import crowplexus.iris.Iris;
 class Main {
     static function main():Void {
         // reminder that the rules are completely optional.
-        final rules:InitRules = {autoRun: false, preset: true};
-        var myScript:Iris = new Iris("assets/scripts/hi.hx", rules);
+        final rules:InitRules = {name: "My Script", autoRun: false, preset: true};
+        final getText:String->String = #if sys sys.io.File.getContent #elseif openfl openfl.utils.Assets.getText #end;
+        var myScript:Iris = new Iris(getText("assets/scripts/hi.hx"), rules);
 
         // this is necessary in case the `autoRun` rule is disabled when initializing the script, if not it will initialize by itself.
         myScript.execute();

@@ -1,12 +1,13 @@
 package crowplexus.iris;
 
 import haxe.ds.StringMap;
-import hscript.*;
+import crowplexus.hscript.*;
 
 /**
  * Initialization Rules for a Script
 **/
 typedef InitRules = {
+	var name:String;
 	var autoRun:Bool;
 	var preset:Bool;
 }
@@ -39,14 +40,11 @@ class Iris {
 	public var ruleSet:InitRules = null;
 
 	/**
-	 * The file path for `this` script.
+	 * The script string  for `this` script.
+	 * 
+	 * contains a full haxe script instance
 	**/
-	var file:String = "";
-
-	/**
-	 * The name of `this` script, trimmed from the `file` string.
-	**/
-	var scriptName:String = "";
+	var scriptStr:String = "";
 
 	/**
 	 * Current initialized script interpreter.
@@ -64,32 +62,30 @@ class Iris {
 	final interpErrStr:String = "Careful, the interpreter hasn't been initialized";
 
 	/**
-	 * Instantiates a new Script with the specified file.
-	 * this function automatically checks whether the file exists or not.
+	 * Instantiates a new Script with the string value.
 	 * 
-	 * @param file      the file (preferably with its path, e.g: assets/scripts/myScript.hx)
+	 * @param scriptStr      the script to be parsed, e.g:
+	 * ```haxe
+	 * function hi() {
+	 * 		trace("Hello World!");
+	 * }
+	 * ```
 	 */
-	public function new(file:String, ?rules:InitRules):Void {
+	public function new(scriptStr:String, ?rules:InitRules):Void {
 		if (rules == null)
-			rules = {autoRun: true, preset: true};
+			rules = {name: "iris", autoRun: true, preset: true};
 
-		this.file = file;
+		this.scriptStr= scriptStr;
 		this.ruleSet = rules;
 
-		function fileExists():Bool
-			return #if sys sys.FileSystem.exists(file) #elseif openfl openfl.utils.Assets.exists(file) #end;
+		parser = new Parser();
+		interp = new Interp();
 
-		if (fileExists()) {
-			parser = new Parser();
-			interp = new Interp();
+		parser.allowTypes = true;
+		parser.allowMetadata = true;
 
-			parser.allowTypes = true;
-			parser.allowMetadata = true;
-
-			if (rules.autoRun)
-				execute();
-		} else
-			trace('[Iris:new()]: Failed to initialize script, File "${file}" does not exist in filesystem.');
+		if (rules.autoRun)
+			execute();
 	}
 
 	/**
@@ -101,11 +97,9 @@ class Iris {
 			return;
 		}
 
-		final str:String = #if sys sys.io.File.getContent(file) #elseif openfl openfl.utils.Assets.getText(file) #end;
-		interp.execute(parser.parseString(str));
+		interp.execute(parser.parseString(scriptStr));
 		// gonna chane this to also include the extension later, should work for now.
-		Iris.instances.set(file.substr(0, file.lastIndexOf(".")), this);
-		scriptName = file.substr(0, file.lastIndexOf("."));
+		Iris.instances.set(ruleSet.name, this);
 
 		#if hscriptPos
 		// overriding trace for good measure.
@@ -201,8 +195,8 @@ class Iris {
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public function destroy():Void {
-		if (Iris.instances.exists(scriptName))
-			Iris.instances.remove(scriptName);
+		if (Iris.instances.exists(ruleSet.name))
+			Iris.instances.remove(ruleSet.name);
 
 		running = false;
 		interp = null;
@@ -228,6 +222,6 @@ class Iris {
 	 * @param v 	Defines what to print to the console.
 	 */
 	private function hPrint(v):Void {
-		#if sys Sys.print #else trace #end ('[${scriptName}:${interp.posInfos().lineNumber}]: ${v}\n');
+		#if sys Sys.print #else trace #end ('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}\n');
 	}
 }
