@@ -20,12 +20,12 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 
 ### Haxe Project Example
 ```hxml
---lib hscript
---lib hscript-iris
+--library hscript
+--library hscript-iris
 
 # this is optional and can be added if wanted
 # provides descriptive traces and better error handling at runtime
---D hscriptPos
+-D hscriptPos
 ```
 
 ### OpenFL / Flixel Project Example
