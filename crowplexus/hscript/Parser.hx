@@ -21,6 +21,7 @@
  */
 package crowplexus.hscript;
 import crowplexus.hscript.Expr;
+import crowplexus.hscript.Tools;
 
 enum Token {
 	TEof;
@@ -694,14 +695,14 @@ class Parser {
 			var ec = parseExpr();
 			mk(ETry(e, vname, t, ec), p1, pmax(ec));
 		case "switch":
-			var e = parseExpr();
+			var parentExpr = parseExpr();
 			var def = null, cases = [];
 			ensure(TBrOpen);
 			while( true ) {
 				var tk = token();
 				switch( tk ) {
 				case TId("case"):
-					var c = { values : [], expr : null };
+					var c = { values : [], expr : null , ifExpr: null };
 					cases.push(c);
 					while( true ) {
 						var e = parseExpr();
@@ -710,6 +711,19 @@ class Parser {
 						switch( tk ) {
 						case TComma:
 							// next expr
+						case TId("if"):
+							if( Type.enumEq(e, EIdent("_")) )
+								unexpected(TId("if"));
+
+							var e = parseExpr();
+							c.ifExpr = e;
+							switch tk = token() {
+								case TComma:
+								case TDoubleDot: break;
+								case _: 
+									unexpected(tk);
+									break;
+							}
 						case TDoubleDot:
 							break;
 						default:
@@ -736,6 +750,15 @@ class Parser {
 						mk(EBlock([]), tokenMin, tokenMin);
 					else
 						mk(EBlock(exprs), pmin(exprs[0]), pmax(exprs[exprs.length - 1]));
+
+					for( i in c.values )
+					{
+						switch Tools.expr(i) {
+							case EIdent("_"):
+								def = c.expr;
+							case _:
+						}
+					}
 				case TId("default"):
 					if( def != null ) unexpected(tk);
 					ensure(TDoubleDot);
@@ -765,7 +788,7 @@ class Parser {
 					break;
 				}
 			}
-			mk(ESwitch(e, cases, def), p1, tokenMax);
+			mk(ESwitch(parentExpr, cases, def), p1, tokenMax);
 		default:
 			null;
 		}

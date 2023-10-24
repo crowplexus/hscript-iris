@@ -23,6 +23,7 @@ package crowplexus.hscript;
 
 import haxe.PosInfos;
 import crowplexus.hscript.Expr;
+import crowplexus.hscript.Tools;
 import haxe.Constraints.IMap;
 
 private enum Stop {
@@ -568,7 +569,7 @@ class Interp {
 			var match = false;
 			for( c in cases ) {
 				for( v in c.values )
-					if( expr(v) == val ) {
+					if( ( !Type.enumEq(Tools.expr(v),EIdent("_")) && expr(v) == val ) && ( c.ifExpr == null || expr(c.ifExpr) == true ) ) {
 						match = true;
 						break;
 					}

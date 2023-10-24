@@ -83,7 +83,7 @@ class Tools {
 		case ETry(e, v, t, c): ETry(f(e), v, t, f(c));
 		case EObject(fl): EObject([for( fi in fl ) { name : fi.name, e : f(fi.e) }]);
 		case ETernary(c, e1, e2): ETernary(f(c), f(e1), f(e2));
-		case ESwitch(e, cases, def): ESwitch(f(e), [for( c in cases ) { values : [for( v in c.values ) f(v)], expr : f(c.expr) } ], def == null ? null : f(def));
+		case ESwitch(e, cases, def): ESwitch(f(e), [for( c in cases ) { values : [for( v in c.values ) f(v)], expr : f(c.expr) , ifExpr: f(c.ifExpr) } ], def == null ? null : f(def));
 		case EMeta(name, args, e): EMeta(name, args == null ? null : [for( a in args ) f(a)], f(e));
 		case ECheckType(e,t): ECheckType(f(e), t);
 		}
@@ -92,7 +92,7 @@ class Tools {
 
 	public static inline function expr( e : Expr ) : ExprDef {
 		#if hscriptPos
-		return e.e;
+		return if (e == null) null else e.e;
 		#else
 		return e;
 		#end
