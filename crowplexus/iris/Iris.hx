@@ -75,7 +75,7 @@ class Iris {
 		if (rules == null)
 			rules = {name: "iris", autoRun: true, preset: true};
 
-		this.scriptStr= scriptStr;
+		this.scriptStr = scriptStr;
 		this.ruleSet = rules;
 
 		parser = new Parser();
@@ -174,8 +174,11 @@ class Iris {
 				Reflect.callMethod(null, interp.variables.get(fun), args);
 			} catch (e:haxe.Exception)
 				hPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
-		} else
-			hPrint("[Iris:call()]: Function \"" + fun + "\" does not exist anywhere in your script.");
+		}
+		/**
+			else
+				hPrint("[Iris:call()]: Function \"" + fun + "\" does not exist anywhere in your script.");
+		**/
 	}
 
 	/**
