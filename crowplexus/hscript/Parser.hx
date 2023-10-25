@@ -712,10 +712,10 @@ class Parser {
 						case TComma:
 							// next expr
 						case TId("if"):
+							var e = parseExpr();
 							if( Type.enumEq(e, EIdent("_")) )
 								unexpected(TId("if"));
 
-							var e = parseExpr();
 							c.ifExpr = e;
 							switch tk = token() {
 								case TComma:
