@@ -12,6 +12,11 @@ typedef InitRules = {
 	var preset:Bool;
 }
 
+typedef IrisFunReturn = {
+	var methodName:String;
+	var methodReturn:Dynamic;
+}
+
 /**
  * This basic object helps with the creation of scripts,
  * along with having neat helper functions to initialize and stop scripts
@@ -158,10 +163,10 @@ class Iris {
 	 * @param fun       The name of the method you wanna call.
 	 * @param args      The arguments that the method needs.
 	 */
-	public function call(fun:String, ?args:Array<Dynamic>):Void {
+	public function call(fun:String, ?args:Array<Dynamic>):Dynamic {
 		if (interp == null) {
 			trace("[Iris:call()]: " + interpErrStr + ", so functions cannot be called.");
-			return;
+			return 0;
 		}
 
 		if (args == null)
@@ -171,14 +176,18 @@ class Iris {
 		var ny:Dynamic = interp.variables.get(fun);
 		if (ny != null && Reflect.isFunction(ny)) {
 			try {
-				Reflect.callMethod(null, interp.variables.get(fun), args);
-			} catch (e:haxe.Exception)
+				Reflect.callMethod(null, ny, args);
+				return {
+					methodName: fun,
+					methodReturn: ny
+				}
+			} catch (e:haxe.Exception) {
+				#if IRIS_DEBUG
 				hPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
+				#end
+			}
 		}
-		/**
-			else
-				hPrint("[Iris:call()]: Function \"" + fun + "\" does not exist anywhere in your script.");
-		**/
+		return 0;
 	}
 
 	/**
