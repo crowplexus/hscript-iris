@@ -88,6 +88,7 @@ class Iris {
 
 		parser.allowTypes = true;
 		parser.allowMetadata = true;
+		parser.allowJSON = true;
 
 		if (rules.autoRun)
 			execute();
