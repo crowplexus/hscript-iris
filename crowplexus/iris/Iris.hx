@@ -112,7 +112,7 @@ class Iris {
 
 		Iris.instances.set(ruleSet.name, this);
 		interp.execute(parser.parseString(scriptStr));
-		// gonna chane this to also include the extension later, should work for now.
+		// gonna change this to also include the extension later, should work for now.
 
 		running = true;
 	}
