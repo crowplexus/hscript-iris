@@ -102,17 +102,17 @@ class Iris {
 			return;
 		}
 
-		interp.execute(parser.parseString(scriptStr));
-		// gonna chane this to also include the extension later, should work for now.
-		Iris.instances.set(ruleSet.name, this);
+		if (ruleSet.preset)
+			preset();
 
 		#if hscriptPos
 		// overriding trace for good measure.
 		set("trace", hPrint, true);
 		#end
 
-		if (ruleSet.preset)
-			preset();
+		Iris.instances.set(ruleSet.name, this);
+		interp.execute(parser.parseString(scriptStr));
+		// gonna chane this to also include the extension later, should work for now.
 
 		running = true;
 	}
