@@ -30,11 +30,6 @@ class Iris {
 	public static var instances:StringMap<Iris> = new StringMap<Iris>();
 
 	/**
-	 * Script Extensions that should be used to look for script files and execute them.
-	**/
-	public static var extensions:Array<String> = [".hx"];
-
-	/**
 	 * Checks if `this` script is running
 	**/
 	public var running:Bool = false;
@@ -108,13 +103,11 @@ class Iris {
 
 		#if hscriptPos
 		// overriding trace for good measure.
-		set("trace", hPrint, true);
+		set("trace", irisPrint, true);
 		#end
 
 		Iris.instances.set(ruleSet.name, this);
 		interp.execute(parser.parseString(scriptStr));
-		// gonna change this to also include the extension later, should work for now.
-
 		running = true;
 	}
 
@@ -156,7 +149,7 @@ class Iris {
 					interp.variables.set(name, value);
 			}
 		} catch (e:haxe.Exception)
-			hPrint("[Iris:set()]: We are sorry, something went terribly wrong, Error: " + e);
+			irisPrint("[Iris:set()]: We are sorry, something went terribly wrong, Error: " + e);
 	}
 
 	/**
@@ -184,7 +177,7 @@ class Iris {
 				}
 			} catch (e:haxe.Exception) {
 				#if IRIS_DEBUG
-				hPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
+				irisPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
 				#end
 			}
 		}
@@ -214,6 +207,7 @@ class Iris {
 		running = false;
 		interp = null;
 		parser = null;
+		ruleSet = null;
 	}
 
 	/**
@@ -223,18 +217,17 @@ class Iris {
 	**/
 	public static function destroyAll():Void {
 		for (key in Iris.instances.keys()) {
-			if (Iris.instances.get(key) == null)
+			if (Iris.instances.get(key).interp == null)
 				continue;
 			Iris.instances.get(key).destroy();
 		}
 	}
 
-	@:noCompletion // not doing "@:noPrivateAccess" for the sake of letting people override this
 	/**
 	 * Special print function for Scripts.
 	 * @param v 	Defines what to print to the console.
 	 */
-	private function hPrint(v):Void {
-		#if sys Sys.print #else trace #end ('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}\n');
+	private function irisPrint(v):Void {
+		trace('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}\n');
 	}
 }
