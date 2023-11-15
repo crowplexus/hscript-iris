@@ -159,7 +159,9 @@ class Iris {
 	 */
 	public function call(fun:String, ?args:Array<Dynamic>):Dynamic {
 		if (interp == null) {
+			#if IRIS_DEBUG
 			trace("[Iris:call()]: " + interpErrStr + ", so functions cannot be called.");
+			#end
 			return 0;
 		}
 
