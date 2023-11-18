@@ -172,10 +172,11 @@ class Iris {
 		var ny:Dynamic = interp.variables.get(fun);
 		if (ny != null && Reflect.isFunction(ny)) {
 			try {
-				Reflect.callMethod(null, ny, args);
+				final ret = Reflect.callMethod(null, ny, args);
 				return {
 					methodName: fun,
-					methodReturn: ny
+					methodReturn: ny,
+					methodVal: ret
 				}
 			} catch (e:haxe.Exception) {
 				#if IRIS_DEBUG
