@@ -12,11 +12,6 @@ typedef InitRules = {
 	var preset:Bool;
 }
 
-typedef IrisFunReturn = {
-	var methodName:String;
-	var methodReturn:Dynamic;
-}
-
 /**
  * This basic object helps with the creation of scripts,
  * along with having neat helper functions to initialize and stop scripts
@@ -94,7 +89,9 @@ class Iris {
 	**/
 	public function execute():Void {
 		if (running || interp == null) {
+			#if IRIS_DEBUG
 			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
+			#end
 			return;
 		}
 
@@ -124,9 +121,11 @@ class Iris {
 	 * @param field 	The field that needs to be looked for.
 	 */
 	public function get(field:String):Dynamic {
+		#if IRIS_DEBUG
 		if (interp == null)
 			trace("[Iris:get()]: " + interpErrStr + ", returning false...");
-		return interp != null ? interp.variables.get(field) : false;
+		#end
+		return interp?.variables.get(field) ?? false;
 	}
 
 	/**
@@ -137,19 +136,20 @@ class Iris {
 	 */
 	public function set(name:String, value:Dynamic, allowOverride:Bool = false):Void {
 		if (interp == null) {
+			#if IRIS_DEBUG
 			trace("[Iris:set()]: " + interpErrStr + ", so variables cannot be set.");
+			#end
 			return;
 		}
 
 		try {
-			if (allowOverride)
+			if (allowOverride || !interp.variables.exists(name))
 				interp.variables.set(name, value);
-			else {
-				if (!interp.variables.exists(name))
-					interp.variables.set(name, value);
-			}
-		} catch (e:haxe.Exception)
+		} catch (e:haxe.Exception) {
+			#if IRIS_DEBUG
 			irisPrint("[Iris:set()]: We are sorry, something went terribly wrong, Error: " + e);
+			#end
+		}
 	}
 
 	/**
@@ -192,9 +192,11 @@ class Iris {
 	 * @param field 		The field to check if exists.
 	 */
 	public function exists(field:String):Bool {
+		#if IRIS_DEBUG
 		if (interp == null)
 			trace("[Iris:exists()]: " + interpErrStr + ", returning false...");
-		return interp != null ? interp.variables.exists(field) : false;
+		#end
+		return interp?.variables.exists(field) ?? false;
 	}
 
 	/**
@@ -230,7 +232,7 @@ class Iris {
 	 * Special print function for Scripts.
 	 * @param v 	Defines what to print to the console.
 	 */
-	private function irisPrint(v):Void {
+	inline function irisPrint(v):Void {
 		trace('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}\n');
 	}
 }
