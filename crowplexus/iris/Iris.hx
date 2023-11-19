@@ -125,7 +125,7 @@ class Iris {
 		if (interp == null)
 			trace("[Iris:get()]: " + interpErrStr + ", returning false...");
 		#end
-		return interp?.variables.get(field) ?? false;
+		return interp != null ? interp.variables.get(field) : false;
 	}
 
 	/**
@@ -173,11 +173,7 @@ class Iris {
 		if (ny != null && Reflect.isFunction(ny)) {
 			try {
 				final ret = Reflect.callMethod(null, ny, args);
-				return {
-					methodName: fun,
-					methodReturn: ny,
-					methodVal: ret
-				}
+				return {methodName: fun, methodReturn: ny, methodVal: ret}
 			} catch (e:haxe.Exception) {
 				#if IRIS_DEBUG
 				irisPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
