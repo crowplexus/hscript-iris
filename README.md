@@ -38,10 +38,10 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 
 # FEATURES
 
-[x] - Imports
-[ ] - Constants/Finals
-[ ] - Enums
-[ ] - Classes
+- [x] Imports
+- [ ] Constants/Finals
+- [ ] Enums
+- [ ] Classes
 
 ---
 
