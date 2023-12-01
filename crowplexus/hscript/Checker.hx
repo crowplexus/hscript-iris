@@ -910,13 +910,13 @@ class Checker {
 				t = typeExpr(e, e == el[el.length-1] ? withType : NoValue);
 			this.locals = locals;
 			return t;
-		case EVar(n, t, init):
+		case EVar(n, t, init), EFinal(n, t, init):
 			var vt = t == null ? makeMono() : makeType(t, expr);
 			if( init != null ) {
 				var et = typeExpr(init, t == null ? Value : WithType(vt));
 				if( t == null ) vt = et else unify(et,vt, init);
 			}
-			locals.set(n, vt);
+			else locals.set(n, vt);
 			return TVoid;
 		case EParent(e):
 			return typeExpr(e,withType);

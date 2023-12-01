@@ -144,7 +144,7 @@ class Bytes {
 			doEncodeConst(c);
 		case EIdent(v):
 			doEncodeString(v);
-		case EVar(n,_,e):
+		case EVar(n,_,e), EFinal(n,_,e):
 			doEncodeString(n);
 			if( e == null )
 				bout.addByte(255);

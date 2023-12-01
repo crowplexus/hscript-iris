@@ -16,7 +16,15 @@ haxelib git hscript-iris https://github.com/crowplexus/hscript-iris/
 
 Once this is done, go to your Project File, whether that be a build.hxml for Haxe Projects, or Project.xml for OpenFL and Flixel projects, and add `hscript-iris` to your libraries
 
+
+- [Examples](https://github.com/crowplexus/hscript-iris#examples)
+- [Features](https://github.com/crowplexus/hscript-iris#features)
+- [Usage](https://github.com/crowplexus/hscript-iris#usage)
+
+
 ---
+
+# EXAMPLES
 
 ### Haxe Project Example
 ```hxml
@@ -39,7 +47,7 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 # FEATURES
 
 - [x] Imports
-- [ ] Constants/Finals
+- [x] Constants/Finals
 - [ ] Enums
 - [ ] Classes
 

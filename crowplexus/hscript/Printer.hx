@@ -129,6 +129,13 @@ class Printer {
 				add(" = ");
 				expr(e);
 			}
+		case EFinal(n, t, e):
+			add("var " + n);
+			addType(t);
+			if( e != null ) {
+				add(" = ");
+				expr(e);
+			}
 		case EParent(e):
 			add("("); expr(e); add(")");
 		case EBlock(el):

@@ -47,6 +47,7 @@ enum Expr {
 	EIdent( v : String );
 	EImport( v : String, as : String);
 	EVar( n : String, ?t : CType, ?e : Expr );
+	EFinal( n :String, ?t : CType, ?e : Expr );
 	EParent( e : Expr );
 	EBlock( e : Array<Expr> );
 	EField( e : Expr, f : String );

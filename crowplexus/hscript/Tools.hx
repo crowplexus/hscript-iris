@@ -27,7 +27,7 @@ class Tools {
 	public static function iter( e : Expr, f : Expr -> Void ) {
 		switch( expr(e) ) {
 		case EConst(_), EIdent(_):
-		case EVar(_, _, e): if( e != null ) f(e);
+		case EVar(_, _, e), EFinal(_, _, e): if( e != null ) f(e);
 		case EParent(e): f(e);
 		case EBlock(el): for( e in el ) f(e);
 		case EField(e, _): f(e);
@@ -65,6 +65,7 @@ class Tools {
 		var edef = switch( expr(e) ) {
 		case EConst(_), EIdent(_), EBreak, EContinue: expr(e);
 		case EVar(n, t, e): EVar(n, t, if( e != null ) f(e) else null);
+		case EFinal(n, t, e): EFinal(n, t, if( e != null ) f(e) else null);
 		case EParent(e): EParent(f(e));
 		case EBlock(el): EBlock([for( e in el ) f(e)]);
 		case EField(e, fi): EField(f(e),fi);

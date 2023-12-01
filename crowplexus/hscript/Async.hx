@@ -391,7 +391,7 @@ class Async {
 			var id1 = "_r" + uid++;
 			var id2 = "_r" + uid++;
 			return toCps(earr, fun(id1, toCps(eindex, fun(id2, call(rest, [mk(EArray(ident(id1,e), ident(id2,e)),e)], e)), exit)), exit);
-		case EVar(v, t, ev):
+		case EVar(v, t, ev), EFinal(v, t, ev):
 			if( ev == null )
 				return block([e, retNull(rest, e)], e);
 			return block([
