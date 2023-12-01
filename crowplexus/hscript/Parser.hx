@@ -22,6 +22,7 @@
 package crowplexus.hscript;
 import crowplexus.hscript.Expr;
 import crowplexus.hscript.Tools;
+using StringTools;
 
 enum Token {
 	TEof;
@@ -789,6 +790,45 @@ class Parser {
 				}
 			}
 			mk(ESwitch(parentExpr, cases, def), p1, tokenMax);
+		case "import":
+			var path = [getIdent()];
+			var asStr : String = null;
+			var star : Bool = false;
+	
+			while( true ) {
+				var t = token();
+				if( t != TDot ) {
+					push(t);
+					break;
+				}
+				t = token();
+				switch( t ) {
+				case TOp("*"): star = true;
+				case TId(id): path.push(id);
+				default: unexpected(t);
+				}
+			}
+
+			// todo: make this not like... this? -Crow
+			final pathStr = path.toString().replace(",", ".").replace("[", "").replace("]", "");
+			final asErr = " -> "+pathStr+" as "+asStr;
+
+			if (maybe(TId("as"))) {
+				asStr = getIdent();
+				final uppercased : Bool=asStr.charAt(0) == asStr.charAt(0).toUpperCase();
+				if (asStr == null || asStr == "null" || asStr == "")
+					unexpected(TId("as"));
+				if (!uppercased)
+					error(ECustom("Import aliases must begin with an uppercase letter." + asErr), readPos, readPos);
+			}
+			// trace(asStr);
+			/*
+			if (token() != TSemicolon) {
+				error(ECustom("Missing semicolon at the end of a \"import\" declaration. -> "+asErr), readPos, readPos);
+				null;
+			}
+			*/
+			mk(EImport(pathStr, asStr));
 		default:
 			null;
 		}
@@ -1136,6 +1176,7 @@ class Parser {
 		case "import":
 			var path = [getIdent()];
 			var star = false;
+			var as = "";
 			while( true ) {
 				var t = token();
 				if( t != TDot ) {
@@ -1153,7 +1194,7 @@ class Parser {
 				}
 			}
 			ensure(TSemicolon);
-			return DImport(path, star);
+			return DImport(path, star, as);
 		case "class":
 			var name = getIdent();
 			var params = parseParams();

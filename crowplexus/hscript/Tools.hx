@@ -57,6 +57,7 @@ class Tools {
 			if( def != null ) f(def);
 		case EMeta(name, args, e): if( args != null ) for( a in args ) f(a); f(e);
 		case ECheckType(e,_): f(e);
+		default:
 		}
 	}
 
@@ -86,16 +87,13 @@ class Tools {
 		case ESwitch(e, cases, def): ESwitch(f(e), [for( c in cases ) { values : [for( v in c.values ) f(v)], expr : f(c.expr) , ifExpr: f(c.ifExpr) } ], def == null ? null : f(def));
 		case EMeta(name, args, e): EMeta(name, args == null ? null : [for( a in args ) f(a)], f(e));
 		case ECheckType(e,t): ECheckType(f(e), t);
+		default: #if hscriptPos e.e #else e #end;
 		}
 		return mk(edef, e);
 	}
 
 	public static inline function expr( e : Expr ) : ExprDef {
-		#if hscriptPos
-		return if (e == null) null else e.e;
-		#else
-		return e;
-		#end
+		return #if hscriptPos e.e #else e #end;
 	}
 
 	public static inline function mk( e : ExprDef, p : Expr ) {

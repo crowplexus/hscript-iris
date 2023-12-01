@@ -36,10 +36,12 @@ class Interp {
 
 	#if haxe3
 	public var variables : Map<String,Dynamic>;
+	public var imports :Map<String,Dynamic>;
 	var locals : Map<String,{ r : Dynamic }>;
 	var binops : Map<String, Expr -> Expr -> Dynamic >;
 	#else
 	public var variables : Hash<Dynamic>;
+	public var imports :Hash<Dynamic>;
 	var locals : Hash<{ r : Dynamic }>;
 	var binops : Hash< Expr -> Expr -> Dynamic >;
 	#end
@@ -67,8 +69,10 @@ class Interp {
 	private function resetVariables(){
 		#if haxe3
 		variables = new Map<String,Dynamic>();
+		imports = new Map<String,Dynamic>();
 		#else
 		variables = new Hash();
+		imports = new Hash();
 		#end
 
 		variables.set("null",null);
@@ -314,8 +318,10 @@ class Interp {
 		if( l != null )
 			return l.r;
 		var v = variables.get(id);
-		if( v == null && !variables.exists(id) )
-			error(EUnknownVariable(id));
+		if( v == null && !variables.exists(id) ) {
+			if (imports.get(id) != null) v = imports.get(id);
+			else error(EUnknownVariable(id));
+		}
 		return v;
 	}
 
@@ -405,6 +411,17 @@ class Interp {
 		case EReturn(e):
 			returnValue = e == null ? null : expr(e);
 			throw SReturn;
+		case EImport(v, as):
+			function last(arr:Array<String>) return arr[arr.length-1];
+
+			var n :String = as ?? last(v.split("."));
+			if ( imports.get(n)!=null ) return imports.get(n);
+			var c:Dynamic = cast( Type.resolveClass(v) ) ?? cast( Type.resolveEnum(v) );
+			if ( c == null )
+				throw error(ECustom("Import"+(as!=null?" named as "+as:"")+" of class "+v+" could not be added."));
+			else imports.set(n, c);
+			return null; // yeah. -Crow
+
 		case EFunction(params,fexpr,name,_):
 			var capturedLocals = duplicate(locals);
 			var me = this;

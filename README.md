@@ -36,9 +36,16 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 
 ---
 
-# USAGE
+# FEATURES
+
+[x] - Imports
+[ ] - Constants/Finals
+[ ] - Enums
+[ ] - Classes
 
 ---
+
+# USAGE
 
 Initializing a Iris Script should be fairly easy and very much self-explnatory
 
@@ -78,13 +85,3 @@ class Main {
 }
 
 ```
-
-# FEATURES
-
----
-
-Currently nothing notable aside from just being a fancy and easier to use wrapper for HScript, some features may be added in later iterations of this library
-
-# PLANNED FEATURES...?
-
-- "import" Keyword with proper functionality

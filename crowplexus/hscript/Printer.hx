@@ -229,6 +229,15 @@ class Printer {
 				add(" ");
 				expr(e);
 			}
+		case EImport(v, as):
+			var n : Dynamic = cast( Type.resolveClass(v) ) ?? cast( Type.resolveEnum(v) );
+			if ( n == null ) return;
+			add("import "+v);
+			if ( as != null )
+				add(" as "+as);
+			add(";\n");
+			
+			// expr(e);
 		case EArray(e,index):
 			expr(e);
 			add("[");
@@ -322,6 +331,7 @@ class Printer {
 			add(" : ");
 			addType(t);
 			add(")");
+		default:
 		}
 	}
 
@@ -341,6 +351,7 @@ class Printer {
 			case EInvalidOp(op): "Invalid operator: "+op;
 			case EInvalidAccess(f): "Invalid access to field " + f;
 			case ECustom(msg): msg;
+			default: "Unknown Error.";
 		};
 		#if hscriptPos
 		return e.origin + ":" + e.line + ": " + message;
