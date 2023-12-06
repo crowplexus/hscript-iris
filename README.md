@@ -62,13 +62,24 @@ Initializing a Iris Script should be fairly easy and very much self-explnatory
 // assets/scripts/hi.hx
 // *
 
+// import somepackage.SomeModule;
+
+final greeting:String = "Hello from Iris!";
+
 function sayHello() {
-    trace("Hello from Iris");
+	trace(greeting);
+
+	/*
+    // if you try this, this function will crash as `greeting` is a constant value
+    greeting = "Uh Oh!";
+	// if SomeModule was imported, you can use it here!
+	var module:SomeModule = new SomeModule();
+	*/
 }
 
 function countUpTo(number:Int) {
-    for (i in 1...number + 1)
-        trace(i);
+	for (i in 1...number+1)
+		trace(i);
 }
 
 // *
@@ -87,7 +98,7 @@ class Main {
         // this is necessary in case the `autoRun` rule is disabled when initializing the script, if not it will initialize by itself.
         myScript.execute();
 
-        myScript.call("sayHello"); // prints "Hello from Iris"
+        myScript.call("sayHello"); // prints "Hello from Iris!"
         myScript.call("countUpTo", [5]); // prints "1, 2, 3, 4, 5"
     }
 }
