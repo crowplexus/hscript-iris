@@ -809,7 +809,7 @@ class Parser {
 				default: unexpected(t);
 				}
 			}
-			
+
 			final asErr = " -> "+pathStr+" as "+asStr;
 
 			if (maybe(TId("as"))) {
