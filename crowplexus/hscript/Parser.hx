@@ -810,8 +810,6 @@ class Parser {
 				}
 			}
 
-			// todo: make this not like... this? -Crow
-			final pathStr = path.toString().replace(",", ".").replace("[", "").replace("]", "");
 			final asErr = " -> "+pathStr+" as "+asStr;
 
 			if (maybe(TId("as"))) {
@@ -829,7 +827,7 @@ class Parser {
 				null;
 			}
 			*/
-			mk(EImport(pathStr, asStr));
+			mk(EImport(path.join('.'), asStr));
 		default:
 			null;
 		}
