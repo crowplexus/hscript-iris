@@ -192,7 +192,7 @@ class Iris {
 		if (interp == null)
 			trace("[Iris:exists()]: " + interpErrStr + ", returning false...");
 		#end
-		return interp?.variables.exists(field) ?? false;
+		return (interp != null) ? interp.variables.exists(field) : false;
 	}
 
 	/**

@@ -430,11 +430,17 @@ class Interp {
 		case EImport(v, as):
 			function last(arr:Array<String>) return arr[arr.length-1];
 
-			var n :String = as ?? last(v.split("."));
+			var n :String = last(v.split("."));
+			if (as != null) n = as;
+
 			if ( imports.get(n)!=null ) return imports.get(n);
-			var c:Dynamic = cast( Type.resolveClass(v) ) ?? cast( Type.resolveEnum(v) );
-			if ( c == null )
-				throw error(ECustom("Import"+(as!=null?" named as "+as:"")+" of class "+v+" could not be added."));
+			var c:Dynamic = cast( Type.resolveClass(v) );
+			// try importing as enum
+			if ( c == null ) try c = cast( Type.resolveEnum(v) );
+
+			if ( c == null ) // if it's still null then throw an error message.
+				throw error(ECustom("Import"+(as!=null?" named as "+as:"")+" of class "+v+" could not be added"));
+
 			else imports.set(n, c);
 			return null; // yeah. -Crow
 

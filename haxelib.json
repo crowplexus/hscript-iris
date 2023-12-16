@@ -2,8 +2,8 @@
     "name": "hscript-iris",
     "description": "a HScript Loader, built for simplicy and inclusion of missing features.",
     "classPath": "src/",
-    "version": "1.0.1",
-    "releasenote": "Fix packaging + add changelog to the files.",
+    "version": "1.0.2",
+    "releasenote": "Haxe 4.2.5 support",
     "license": "MIT",
 
     "url": "https://github.com/crowplexus/hscript-iris",
