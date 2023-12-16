@@ -8,7 +8,13 @@ a [HScript](https://github.com/HaxeFoundation/hscript) extension made to make th
 
 # INSTALLATION
 
-Currently, Iris is not available in the haxelib, you can install it by running the following command
+For stable versions, use this
+
+```
+haxelib install hscript-iris
+```
+
+For unstable versions however, use this
 
 ```
 haxelib git hscript-iris https://github.com/crowplexus/hscript-iris/

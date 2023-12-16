@@ -1,0 +1,13 @@
+{
+    "name": "hscript-iris",
+    "description": "a HScript Loader, built for simplicy and inclusion of missing features.",
+    "classPath": "crowplexus/",
+    "version": "1.0.0",
+    "releasenote": "First Release.",
+    "license": "MIT",
+
+    "url": "https://github.com/crowplexus/hscript-iris",
+    "contributors": [
+        "crowplexus", "cakeplexus"
+    ]
+}
