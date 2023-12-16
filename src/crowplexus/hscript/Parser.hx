@@ -810,7 +810,7 @@ class Parser {
 				}
 			}
 
-			final asErr = " -> "+pathStr+" as "+asStr;
+			final asErr = " -> "+path.join(".")+" as "+asStr;
 
 			if (maybe(TId("as"))) {
 				asStr = getIdent();
