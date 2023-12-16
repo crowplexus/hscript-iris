@@ -3,7 +3,7 @@
     "description": "a HScript Loader, built for simplicy and inclusion of missing features.",
     "classPath": "src/",
     "version": "1.0.1",
-    "releasenote": "First Release.",
+    "releasenote": "Fix packaging + add changelog to the files.",
     "license": "MIT",
 
     "url": "https://github.com/crowplexus/hscript-iris",
