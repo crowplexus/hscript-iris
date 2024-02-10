@@ -59,12 +59,12 @@ class Iris {
 	/**
 	 * Instantiates a new Script with the string value.
 	 * 
-	 * @param scriptStr      the script to be parsed, e.g:
 	 * ```haxe
 	 * function hi() {
 	 * 		trace("Hello World!");
 	 * }
 	 * ```
+	 * @param scriptStr      the script to be parsed, e.g:
 	 */
 	public function new(scriptStr:String, ?rules:InitRules):Void {
 		if (rules == null)
