@@ -53,8 +53,11 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 # FEATURES
 
 - [x] Imports
-- [x] Constants/Finals
+- [x] Import Aliases
+- [ ] Improved Error Handling
+- [x] Finals
 - [ ] Enums
+- [ ] Structs
 - [ ] Classes
 
 ---
