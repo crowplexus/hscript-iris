@@ -36,12 +36,12 @@ class Interp {
 
 	#if haxe3
 	public var variables : Map<String,Dynamic>;
-	public var imports :Map<String,Dynamic>;
+	public var imports : Map<String,Dynamic>;
 	var locals : Map<String,{ r : Dynamic, ?const : Bool}>;
 	var binops : Map<String, Expr -> Expr -> Dynamic >;
 	#else
 	public var variables : Hash<Dynamic>;
-	public var imports :Hash<Dynamic>;
+	public var imports : Hash<Dynamic>;
 	var locals : Hash<{ r : Dynamic }>;
 	var binops : Hash< Expr -> Expr -> Dynamic >;
 	#end
