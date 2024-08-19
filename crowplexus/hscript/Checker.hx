@@ -978,7 +978,7 @@ class Checker {
 					t = typeExpr(e, e == el[el.length - 1] ? withType : NoValue);
 				this.locals = locals;
 				return t;
-			case EVar(n, t, init), EFinal(n, t, init):
+			case EVar(n, t, init, c):
 				var vt = t == null ? makeMono() : makeType(t, expr);
 				if (init != null) {
 					var et = typeExpr(init, t == null ? Value : WithType(vt));

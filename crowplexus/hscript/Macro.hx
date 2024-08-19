@@ -202,7 +202,7 @@ class Macro {
 					else
 					#end
 					EConst(CIdent(v));
-				case EVar(n, t, e), EFinal(n, t, e):
+				case EVar(n, t, e, c):
 					EVars([
 						{name: n, expr: if (e == null) null else convert(e), type: if (t == null) null else convertType(t)}
 					]);
@@ -210,13 +210,13 @@ class Macro {
 					EParenthesis(convert(e));
 				case EBlock(el):
 					EBlock(map(el, convert));
-				case EField(e, f):
+				case EField(e, f, s):
 					#if !haxe3
 					if (isType(f))
 						EType(convert(e), f);
 					else
 					#end
-					EField(convert(e), f);
+					EField(convert(e), f, s);
 				case EBinop(op, e1, e2):
 					var b = binops.get(op);
 					if (b == null)

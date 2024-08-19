@@ -130,7 +130,7 @@ class Printer {
 			add("??NULL??");
 			return;
 		}
-		switch (#if hscriptPos e.e #else e #end) {
+		switch (Tools.expr(e)) {
 			case EConst(c):
 				switch (c) {
 					case CInt(i): add(i);
@@ -149,15 +149,12 @@ class Printer {
 				}
 			case EIdent(v):
 				add(v);
-			case EVar(n, t, e):
-				add("var " + n);
-				addType(t);
-				if (e != null) {
-					add(" = ");
-					expr(e);
+			case EVar(n, t, e, c):
+				if (c) {
+					add("final " + n);
+				} else {
+					add("var " + n);
 				}
-			case EFinal(n, t, e):
-				add("var " + n);
 				addType(t);
 				if (e != null) {
 					add(" = ");
@@ -170,18 +167,19 @@ class Printer {
 			case EBlock(el):
 				if (el.length == 0) {
 					add("{}");
-				} else {
-					incrementIndent();
-					add("{\n");
-					for (e in el) {
-						add(tabs);
-						expr(e);
-						add(";\n");
-					}
-					decrementIndent();
-					add(tabs);
-					add("}");
+					return;
 				}
+
+				incrementIndent();
+				add("{\n");
+				for (e in el) {
+					add(tabs);
+					expr(e);
+					add(";\n");
+				}
+				decrementIndent();
+				add(tabs);
+				add("}");
 			case EField(e, f, s):
 				expr(e);
 				if (s) {
@@ -205,7 +203,7 @@ class Printer {
 				if (e == null)
 					expr(e);
 				else
-					switch (#if hscriptPos e.e #else e #end) {
+					switch (Tools.expr(e)) {
 						case EField(_), EIdent(_), EConst(_):
 							expr(e);
 						default:
@@ -282,7 +280,6 @@ class Printer {
 				add("import " + v);
 				if (as != null)
 					add(" as " + as);
-				add(";\n");
 
 			// expr(e);
 			case EArray(e, index):
@@ -325,18 +322,21 @@ class Printer {
 			case EObject(fl):
 				if (fl.length == 0) {
 					add("{}");
-				} else {
-					incrementIndent();
-					add("{\n");
-					for (f in fl) {
-						add(tabs);
-						add(f.name + " : ");
-						expr(f.e);
-						add(",\n");
-					}
-					decrementIndent();
-					add("}");
+					return;
 				}
+				incrementIndent();
+				add("{\n");
+				for (i => f in fl) {
+					add(tabs);
+					add(f.name + " : ");
+					expr(f.e);
+					if (i < fl.length - 1)
+						add(",");
+					add("\n");
+				}
+				decrementIndent();
+				add(tabs);
+				add("}");
 			case ETernary(c, e1, e2):
 				expr(c);
 				add(" ? ");
@@ -344,10 +344,13 @@ class Printer {
 				add(" : ");
 				expr(e2);
 			case ESwitch(e, cases, def):
-				add("switch( ");
+				add("switch");
 				expr(e);
-				add(") {");
+				add(" {");
+				incrementIndent();
 				for (c in cases) {
+					add("\n");
+					add(tabs);
 					add("case ");
 					var first = true;
 					for (v in c.values) {
@@ -359,12 +362,19 @@ class Printer {
 					}
 					add(": ");
 					expr(c.expr);
-					add(";\n");
+					add(";");
 				}
 				if (def != null) {
+					add("\n");
+					add(tabs);
 					add("default: ");
 					expr(def);
-					add(";\n");
+					add(";");
+				}
+				decrementIndent();
+				if (cases.length > 0) {
+					add("\n");
+					add(tabs);
 				}
 				add("}");
 			case EMeta(name, args, e):
@@ -391,6 +401,10 @@ class Printer {
 				addType(t);
 				add(")");
 			case EEnum(name, params):
+				if (params.length == 0) {
+					add("enum " + name + " {}");
+					return;
+				}
 				add("enum " + name + " {\n");
 				incrementIndent();
 				for (p in params) {

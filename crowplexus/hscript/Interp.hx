@@ -408,12 +408,7 @@ class Interp {
 				}
 			case EIdent(id):
 				return resolve(id);
-			case EVar(n, _, v), EFinal(n, _, v):
-				// i can't compare it on the spot -Crow
-				var isConst: Bool = switch (e) {
-					case EFinal(_, _, _): true;
-					default: false;
-				}
+			case EVar(n, _, v, isConst):
 				declared.push({n: n, old: locals.get(n)});
 				locals.set(n, {r: (v == null) ? null : expr(v), const: isConst});
 				return null;

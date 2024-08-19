@@ -315,7 +315,7 @@ class Parser {
 		return switch (expr(e)) {
 			case EBlock(_), EObject(_), ESwitch(_): true;
 			case EFunction(_, e, _, _): isBlock(e);
-			case EVar(_, t, e), EFinal(_, t, e): e != null ? isBlock(e) : t != null ? t.match(CTAnon(_)) : false;
+			case EVar(_, t, e, _): e != null ? isBlock(e) : t != null ? t.match(CTAnon(_)) : false;
 			case EIf(_, e1, e2): if (e2 != null) isBlock(e2) else isBlock(e1);
 			case EBinop(_, _, e): isBlock(e);
 			case EUnop(_, prefix, e): !prefix && isBlock(e);
@@ -325,6 +325,7 @@ class Parser {
 			case EReturn(e): e != null && isBlock(e);
 			case ETry(_, _, _, e): isBlock(e);
 			case EMeta(_, _, e): isBlock(e);
+			case EEnum(_, _): true;
 			default: false;
 		}
 	}
@@ -653,8 +654,7 @@ class Parser {
 					e = parseExpr();
 				else
 					push(tk);
-				if (id == "final") mk(EFinal(ident, t, e), p1,
-					(e == null) ? tokenMax : pmax(e)); else mk(EVar(ident, t, e), p1, (e == null) ? tokenMax : pmax(e));
+				mk(EVar(ident, t, e, id == "final"), p1, (e == null) ? tokenMax : pmax(e));
 			case "while":
 				var econd = parseExpr();
 				var e = parseExpr();

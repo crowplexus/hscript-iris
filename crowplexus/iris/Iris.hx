@@ -109,9 +109,18 @@ class Iris {
 		#end
 
 		Iris.instances.set(ruleSet.name, this);
-		expr = parser.parseString(scriptStr);
+		if (expr == null)
+			expr = parse();
 		interp.execute(expr);
 		running = true;
+	}
+
+	public function parse() {
+		if (running)
+			return expr;
+		if (expr != null)
+			return expr;
+		return expr = parser.parseString(scriptStr);
 	}
 
 	/**
