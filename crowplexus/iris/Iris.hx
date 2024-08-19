@@ -140,7 +140,7 @@ class Iris {
 	 * @param value         The value for your new field.
 	 * @param allowOverride If set to true, when setting the new field, we will ignore any previously set fields of the same name.
 	 */
-	public function set(name: String, value: Dynamic, allowOverride: Bool = false): Void {
+	public function set(name: String, value: Dynamic, allowOverride: Bool = true): Void {
 		if (interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:set()]: " + interpErrStr + ", so variables cannot be set.");
