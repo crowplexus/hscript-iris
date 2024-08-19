@@ -361,14 +361,6 @@ class Interp {
 		return null;
 	}
 
-	function getClass(name: String): Dynamic {
-		var c: Dynamic = Type.resolveClass(name);
-		if (c == null) // try importing as enum
-			try
-				c = Type.resolveEnum(name);
-		return c;
-	}
-
 	public function expr(e: Expr): Dynamic {
 		#if hscriptPos
 		curExpr = e;
@@ -376,12 +368,12 @@ class Interp {
 		#end
 		switch (e) {
 			case EConst(c):
-				switch (c) {
-					case CInt(v): return v;
-					case CFloat(f): return f;
-					case CString(s): return s;
+				return switch (c) {
+					case CInt(v): v;
+					case CFloat(f): f;
+					case CString(s): s;
 					#if !haxe3
-					case CInt32(v): return v;
+					case CInt32(v): v;
 					#end
 				}
 			case EIdent(id):
@@ -412,23 +404,24 @@ class Interp {
 					error(EInvalidOp(op));
 				return fop(e1, e2);
 			case EUnop(op, prefix, e):
-				switch (op) {
+				return switch (op) {
 					case "!":
-						return expr(e) != true;
+						expr(e) != true;
 					case "-":
-						return -expr(e);
+						-expr(e);
 					case "++":
-						return increment(e, prefix, 1);
+						increment(e, prefix, 1);
 					case "--":
-						return increment(e, prefix, -1);
+						increment(e, prefix, -1);
 					case "~":
 						#if (neko && !haxe3)
-						return haxe.Int32.complement(expr(e));
+						haxe.Int32.complement(expr(e));
 						#else
-						return ~expr(e);
+						~expr(e);
 						#end
 					default:
 						error(EInvalidOp(op));
+						null;
 				}
 			case ECall(e, params):
 				var args = new Array();
@@ -473,7 +466,7 @@ class Interp {
 				if (imports.exists(n))
 					return imports.get(n);
 
-				var c: Dynamic = getClass(v);
+				var c: Dynamic = Tools.getClass(v);
 
 				if (c == null) // if it's still null then throw an error message.
 					throw error(ECustom("Import" + (as != null ? " named as " + as : "") + " of class " + v + " could not be added"));
@@ -554,6 +547,7 @@ class Interp {
 				}
 				return f;
 			case EArrayDecl(arr):
+				// Code from FNF-CNE-Devs/hscript-improved, segment written by @NeeEoo
 				if (arr.length > 0 && Tools.expr(arr[0]).match(EBinop("=>", _))) {
 					var isAllString: Bool = true;
 					var isAllInt: Bool = true;
@@ -592,6 +586,7 @@ class Interp {
 						setMapValue(map, keys[n], values[n]);
 					}
 					return map;
+					// End of FNF-CNE-Devs/hscript-improved segment
 				} else {
 					var a = new Array();
 					for (e in arr) {
@@ -710,6 +705,8 @@ class Interp {
 				}
 
 				variables.set(enumName, obj);
+			case EDirectValue(value):
+				return value;
 		}
 		return null;
 	}

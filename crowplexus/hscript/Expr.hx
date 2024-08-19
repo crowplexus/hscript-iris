@@ -76,6 +76,7 @@ enum Expr
 	EMeta(name:String, args:Array<Expr>, e:Expr);
 	ECheckType(e:Expr, t:CType);
 	EEnum(name:String, fields:Array<EnumType>);
+	EDirectValue(value:Dynamic);
 }
 typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
 typedef Metadata = Array<{name: String, params: Array<Expr>}>;

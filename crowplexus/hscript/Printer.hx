@@ -406,6 +406,8 @@ class Printer {
 				decrementIndent();
 				add(tabs);
 				add("}");
+			case EDirectValue(value):
+				add("<Internal Value " + value + ">");
 		}
 	}
 

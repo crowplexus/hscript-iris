@@ -324,6 +324,8 @@ class Parser {
 			tk = token();
 		}
 
+		trace(e);
+
 		if (tk != TSemicolon && tk != TEof) {
 			if (isBlock(e))
 				push(tk);
@@ -728,7 +730,7 @@ class Parser {
 								tk = token();
 								switch (tk) {
 									case TComma:
-									// next expr
+										// next expr
 									case TId("if"):
 										// if( Type.enumEq(e, EIdent("_")) )
 										//	unexpected(TId("if"));
@@ -880,6 +882,61 @@ class Parser {
 				}
 
 				mk(EEnum(name, fields));
+			case "typedef":
+				// typedef Name = Type;
+
+				/*
+					Ignore parsing if its, typedef Name = {
+						> Person
+						var name:String;
+						var age:Int;
+					}
+
+					If the value is a class then it will be parsed as a EVar(Name, value);
+				 */
+
+				var name = getIdent();
+
+				ensureToken(TOp("="));
+
+				var t = parseType();
+
+				/*trace(t);
+
+					var tk = token();
+					trace(tk);
+					push(tk); */
+				// todo: make it parse chaining typedefs
+
+				switch (t) {
+					case CTAnon(fields):
+						null;
+					case CTPath(path, params):
+						if (params != null && params.length > 1)
+							error(ECustom("Typedefs can't have parameters"), tokenMin, tokenMax);
+
+						if (path.length == 0)
+							error(ECustom("Typedefs can't be empty"), tokenMin, tokenMax);
+
+						{
+							var className = path.join(".");
+							var cl = Tools.getClass(className);
+							if (cl != null) {
+								return mk(EVar(name, null, mk(EDirectValue(cl))));
+							}
+						}
+
+						var expr = mk(EIdent(path.shift()));
+						while (path.length > 0) {
+							expr = mk(EField(expr, path.shift()));
+						}
+
+						// todo? add import to the beginning of the file?
+						mk(EVar(name, null, expr));
+					default:
+						error(ECustom("Typedef, unknown type " + t), tokenMin, tokenMax);
+						null;
+				}
 			default:
 				null;
 		}

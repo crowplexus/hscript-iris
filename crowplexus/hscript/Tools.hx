@@ -160,6 +160,14 @@ class Tools {
 		return e;
 		#end
 	}
+
+	public static function getClass(name: String): Dynamic {
+		var c: Dynamic = Type.resolveClass(name);
+		if (c == null) // try importing as enum
+			try
+				c = Type.resolveEnum(name);
+		return c;
+	}
 }
 
 class EnumValue {

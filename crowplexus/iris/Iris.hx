@@ -20,7 +20,7 @@ typedef InitRules = {
 **/
 class Iris {
 	/**
-	 * Dictionary with stored instances of scripts.
+	 * Map with stored instances of scripts.
 	**/
 	public static var instances: StringMap<Iris> = new StringMap<Iris>();
 
@@ -203,7 +203,7 @@ class Iris {
 
 	/**
 	 * Destroys the current instance of this script
-	 * along with its parser, and also removes it from the `Iris.instances` dictionary.
+	 * along with its parser, and also removes it from the `Iris.instances` map.
 	 * 
 	 * **WARNING**: this action CANNOT be undone.
 	**/
@@ -218,7 +218,7 @@ class Iris {
 	}
 
 	/**
-	 * Destroys every single script found within the `Iris.instances` dictionary.
+	 * Destroys every single script found within the `Iris.instances` map.
 	 * 
 	 * **WARNING**: this action CANNOT be undone.
 	**/
