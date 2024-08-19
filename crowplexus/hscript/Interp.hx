@@ -397,6 +397,7 @@ class Interp {
 		var e = e.e;
 		#end
 		switch (e) {
+			case EIgnore(_):
 			case EConst(c):
 				return switch (c) {
 					case CInt(v): v;

@@ -59,6 +59,7 @@ typedef ExprDef = Expr;
 enum Expr
 #end
 {
+	EIgnore(skipSemicolon:Bool);
 	EConst(c:Const);
 	EIdent(v:String);
 	EImport(v:String, as:String);
@@ -114,13 +115,22 @@ class ObjectDecl {
 	}
 }
 
+typedef TypePath = {
+	var pack: Array<String>;
+	var name: String;
+	var params: Array<CType>;
+	var sub: String;
+}
+
 enum CType {
-	CTPath(path: Array<String>, ?params: Array<CType>);
+	CTPath(path: TypePath);
 	CTFun(args: Array<CType>, ret: CType);
 	CTAnon(fields: Array<{name: String, t: CType, ?meta: Metadata}>);
+	CTExtend(t: Array<TypePath>, fields: Array<{name: String, t: CType, ?meta: Metadata}>);
 	CTParent(t: CType);
 	CTOpt(t: CType);
 	CTNamed(n: String, t: CType);
+	CTIntersection(types: Array<CType>);
 }
 
 #if hscriptPos

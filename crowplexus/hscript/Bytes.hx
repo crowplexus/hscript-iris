@@ -363,6 +363,7 @@ class Bytes {
 		var e = e.e;
 		#end
 		switch (e) {
+			case EIgnore(_):
 			case EConst(c):
 				doEncodeExprType(EConst);
 				doEncodeConst(c);
@@ -681,7 +682,12 @@ class Bytes {
 				var args = count == 0 ? null : [for (i in 0...count - 1) doDecode()];
 				EMeta(name, args, doDecode());
 			case ECheckType:
-				ECheckType(doDecode(), CTPath(["Void"]));
+				ECheckType(doDecode(), CTPath({
+					pack: [],
+					params: null,
+					sub: null,
+					name: "Void"
+				}));
 			case EEnum:
 				var name = doDecodeString();
 				var fields: Array<EnumType> = [];

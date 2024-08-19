@@ -13,8 +13,8 @@ using StringTools;
 @:access(crowplexus.iris.Iris)
 class Main {
 	static function main() {
-		// mainTest();
-		mainBytes();
+		mainTest();
+		// mainBytes();
 	}
 
 	static function mainTest() {

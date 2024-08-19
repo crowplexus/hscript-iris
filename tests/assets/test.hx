@@ -7,12 +7,19 @@ typedef Human = {
 	isSecretlyAFurry: Bool
 }
 
+typedef Entity = {
+	ai: Bool
+}
+
 typedef Person = {
 	> Human,
+	> Entity,
 	name: String,
 	age: Int
 }
 
+typedef Animal = Entity & {species: String};
+typedef Callback = Animal->Void & {name: String};
 final test = "Iris";
 
 trace("Top level " + test);
@@ -32,6 +39,8 @@ function main() {
 	trace(0xFF);
 	trace(0xFF_FF);
 
+	trace(5 & 2);
+
 	var obj = null;
 	obj?.name = "Crow";
 	trace(obj?.name);
@@ -39,7 +48,15 @@ function main() {
 	trace(obj?.name?.length ?? "invalid length");
 
 	obj ??= {name: "Crow"};
+	obj ??= {};
 	trace(obj.name);
+
+	switch (test) {
+		case "Iris":
+			trace("Matching Iris");
+		default:
+			trace("Not Matching");
+	}
 
 	return "Return value";
 }

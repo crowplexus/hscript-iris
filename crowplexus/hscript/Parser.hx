@@ -313,7 +313,7 @@ class Parser {
 		if (e == null)
 			return false;
 		return switch (expr(e)) {
-			case EBlock(_), EObject(_), ESwitch(_): true;
+			case EBlock(_), EObject(_), ESwitch(_), EEnum(_, _): true;
 			case EFunction(_, e, _, _): isBlock(e);
 			case EVar(_, t, e, _): e != null ? isBlock(e) : t != null ? t.match(CTAnon(_)) : false;
 			case EIf(_, e1, e2): if (e2 != null) isBlock(e2) else isBlock(e1);
@@ -325,24 +325,24 @@ class Parser {
 			case EReturn(e): e != null && isBlock(e);
 			case ETry(_, _, _, e): isBlock(e);
 			case EMeta(_, _, e): isBlock(e);
-			case EEnum(_, _): true;
+			case EIgnore(skipSemicolon): skipSemicolon;
 			default: false;
 		}
 	}
 
 	function parseFullExpr(exprs: Array<Expr>) {
 		var e = parseExpr();
-		exprs.push(e);
+		if (!expr(e).match(EIgnore(_)))
+			exprs.push(e);
 
 		var tk = token();
 		// this is a hack to support var a,b,c; with a single EVar
 		while (tk == TComma && e != null && expr(e).match(EVar(_))) {
 			e = parseStructure("var"); // next variable
-			exprs.push(e);
+			if (!expr(e).match(EIgnore(_)))
+				exprs.push(e);
 			tk = token();
 		}
-
-		trace(e);
 
 		if (tk != TSemicolon && tk != TEof) {
 			if (isBlock(e))
@@ -918,17 +918,12 @@ class Parser {
 
 				var t = parseType();
 
-				/*trace(t);
-
-					var tk = token();
-					trace(tk);
-					push(tk); */
-				// todo: make it parse chaining typedefs
-
 				switch (t) {
-					case CTAnon(fields):
-						null;
-					case CTPath(path, params):
+					case CTAnon(_) | CTExtend(_) | CTIntersection(_) | CTFun(_):
+						mk(EIgnore(true));
+					case CTPath(tp):
+						var path = tp.pack.concat([tp.name]);
+						var params = tp.params;
 						if (params != null && params.length > 1)
 							error(ECustom("Typedefs can't have parameters"), tokenMin, tokenMax);
 
@@ -1085,6 +1080,7 @@ class Parser {
 			case TId(v):
 				push(t);
 				var path = parsePath();
+				var name = path.pop();
 				var params = null;
 				t = token();
 				switch (t) {
@@ -1116,7 +1112,12 @@ class Parser {
 					default:
 						push(t);
 				}
-				return parseTypeNext(CTPath(path, params));
+				return parseTypeNext(CTPath({
+					pack: path,
+					params: params,
+					sub: null,
+					name: name
+				}));
 			case TPOpen:
 				var a = token(), b = token();
 
@@ -1167,7 +1168,9 @@ class Parser {
 						}
 				}
 			case TBrOpen:
+				var curType = null;
 				var fields = [];
+				var tps = [];
 				var meta = null;
 				while (true) {
 					t = token();
@@ -1192,12 +1195,27 @@ class Parser {
 							if (meta == null)
 								meta = [];
 							meta.push({name: name, params: parseMetaArgs()});
+						case TOp(">"):
+							var tp = parseType();
+							switch (tp) {
+								case CTPath(tp):
+									tps.push(tp);
+								default:
+									unexpected(t);
+							}
+							t = token();
+							switch (t) {
+								case TComma:
+								case TBrClose: break;
+								default: unexpected(t);
+							}
 						default:
+							trace(t, fields, tps);
 							unexpected(t);
 							break;
 					}
 				}
-				return parseTypeNext(CTAnon(fields));
+				return parseTypeNext(tps.length == 0 ? CTAnon(fields) : CTExtend(tps, fields));
 			default:
 				return unexpected(t);
 		}
@@ -1205,12 +1223,14 @@ class Parser {
 
 	function parseTypeNext(t: CType) {
 		var tk = token();
+		var isIntersection = false;
 		switch (tk) {
 			case TOp(op):
-				if (op != "->") {
+				if (op != "->" && op != "&") {
 					push(tk);
 					return t;
 				}
+				isIntersection = op == "&";
 			default:
 				push(tk);
 				return t;
@@ -1221,6 +1241,8 @@ class Parser {
 				args.unshift(t);
 				return t2;
 			default:
+				if (isIntersection)
+					return CTIntersection([t, t2]);
 				return CTFun([t], t2);
 		}
 	}
