@@ -7,9 +7,9 @@ import crowplexus.hscript.*;
  * Initialization Rules for a Script
 **/
 typedef InitRules = {
-	var name:String;
-	var autoRun:Bool;
-	var preset:Bool;
+	var name: String;
+	var autoRun: Bool;
+	var preset: Bool;
 }
 
 /**
@@ -22,39 +22,39 @@ class Iris {
 	/**
 	 * Dictionary with stored instances of scripts.
 	**/
-	public static var instances:StringMap<Iris> = new StringMap<Iris>();
+	public static var instances: StringMap<Iris> = new StringMap<Iris>();
 
 	/**
 	 * Checks if `this` script is running
 	**/
-	public var running:Bool = false;
+	public var running: Bool = false;
 
 	/**
 	 * The current initialization rules for `this` script.
 	**/
-	public var ruleSet:InitRules = null;
+	public var ruleSet: InitRules = null;
 
 	/**
 	 * The script string  for `this` script.
 	 * 
 	 * contains a full haxe script instance
 	**/
-	var scriptStr:String = "";
+	var scriptStr: String = "";
 
 	/**
 	 * Current initialized script interpreter.
 	**/
-	var interp:Interp;
+	var interp: Interp;
 
 	/**
 	 * Current initialized script parser.
 	**/
-	var parser:Parser;
+	var parser: Parser;
 
 	/**
 	 * Helper variable for the error string caused by a nulled interpreter.
 	**/
-	final interpErrStr:String = "Careful, the interpreter hasn't been initialized";
+	final interpErrStr: String = "Careful, the interpreter hasn't been initialized";
 
 	/**
 	 * Instantiates a new Script with the string value.
@@ -66,7 +66,7 @@ class Iris {
 	 * ```
 	 * @param scriptStr      the script to be parsed, e.g:
 	 */
-	public function new(scriptStr:String, ?rules:InitRules):Void {
+	public function new(scriptStr: String, ?rules: InitRules): Void {
 		if (rules == null)
 			rules = {name: "iris", autoRun: true, preset: true};
 
@@ -87,7 +87,7 @@ class Iris {
 	/**
 	 * Executes this script
 	**/
-	public function execute():Void {
+	public function execute(): Void {
 		if (running || interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
@@ -111,7 +111,7 @@ class Iris {
 	/**
 	 * Appends Default Classes/Enums for the Script to use.
 	**/
-	public function preset():Void {
+	public function preset(): Void {
 		set("Math", Math);
 		set("StringTools", StringTools);
 	}
@@ -120,7 +120,7 @@ class Iris {
 	 * Returns a field from the script.
 	 * @param field 	The field that needs to be looked for.
 	 */
-	public function get(field:String):Dynamic {
+	public function get(field: String): Dynamic {
 		#if IRIS_DEBUG
 		if (interp == null)
 			trace("[Iris:get()]: " + interpErrStr + ", returning false...");
@@ -134,7 +134,7 @@ class Iris {
 	 * @param value         The value for your new field.
 	 * @param allowOverride If set to true, when setting the new field, we will ignore any previously set fields of the same name.
 	 */
-	public function set(name:String, value:Dynamic, allowOverride:Bool = false):Void {
+	public function set(name: String, value: Dynamic, allowOverride: Bool = false): Void {
 		if (interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:set()]: " + interpErrStr + ", so variables cannot be set.");
@@ -157,7 +157,7 @@ class Iris {
 	 * @param fun       The name of the method you wanna call.
 	 * @param args      The arguments that the method needs.
 	 */
-	public function call(fun:String, ?args:Array<Dynamic>):Dynamic {
+	public function call(fun: String, ?args: Array<Dynamic>): Dynamic {
 		if (interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:call()]: " + interpErrStr + ", so functions cannot be called.");
@@ -169,7 +169,7 @@ class Iris {
 			args = [];
 
 		// fun-ny
-		var ny:Dynamic = interp.variables.get(fun);
+		var ny: Dynamic = interp.variables.get(fun);
 		if (ny != null && Reflect.isFunction(ny)) {
 			try {
 				final ret = Reflect.callMethod(null, ny, args);
@@ -187,7 +187,7 @@ class Iris {
 	 * Checks the existance of a field or method within your script.
 	 * @param field 		The field to check if exists.
 	 */
-	public function exists(field:String):Bool {
+	public function exists(field: String): Bool {
 		#if IRIS_DEBUG
 		if (interp == null)
 			trace("[Iris:exists()]: " + interpErrStr + ", returning false...");
@@ -201,7 +201,7 @@ class Iris {
 	 * 
 	 * **WARNING**: this action CANNOT be undone.
 	**/
-	public function destroy():Void {
+	public function destroy(): Void {
 		if (Iris.instances.exists(ruleSet.name))
 			Iris.instances.remove(ruleSet.name);
 
@@ -216,7 +216,7 @@ class Iris {
 	 * 
 	 * **WARNING**: this action CANNOT be undone.
 	**/
-	public static function destroyAll():Void {
+	public static function destroyAll(): Void {
 		for (key in Iris.instances.keys()) {
 			if (Iris.instances.get(key).interp == null)
 				continue;
@@ -228,7 +228,7 @@ class Iris {
 	 * Special print function for Scripts.
 	 * @param v 	Defines what to print to the console.
 	 */
-	inline function irisPrint(v):Void {
+	inline function irisPrint(v): Void {
 		trace('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}\n');
 	}
 }

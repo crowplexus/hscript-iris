@@ -1,0 +1,10 @@
+{
+    "whitespace": {
+        "typeHintColonPolicy": "after",
+        "typeCheckColonPolicy": "around",
+        "ternaryPolicy": "around"
+    },
+    "indentation": {
+        "character": "tab"
+    }
+}

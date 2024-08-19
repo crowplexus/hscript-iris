@@ -12,7 +12,7 @@ class Main {
 	static function main() {
 		trace("Hello World!");
 
-		var myScript:Iris = new Iris("assets/test.hx");
+		var myScript: Iris = new Iris("assets/test.hx");
 		myScript.execute();
 
 		var result = myScript.call("main"); // prints "Hello from Iris!"
@@ -25,13 +25,13 @@ class Main {
 	public static function fullTestParseEntireSourceCode() {
 		var hxfiles = [];
 
-		function recursiveFinder(path:String) {
+		function recursiveFinder(path: String) {
 			var files = FileSystem.readDirectory(path);
 			for (file in files) {
 				var filePath = Path.join([path, file]);
 				if (FileSystem.isDirectory(filePath)) {
 					recursiveFinder(filePath);
-				} else if(file.endsWith(".hx")) {
+				} else if (file.endsWith(".hx")) {
 					hxfiles.push(filePath);
 				}
 			}
