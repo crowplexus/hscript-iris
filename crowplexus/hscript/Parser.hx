@@ -235,6 +235,10 @@ class Parser {
 
 	function getIdent() {
 		var tk = token();
+		return extractIdent(tk);
+	}
+
+	function extractIdent(tk: Token): String {
 		switch (tk) {
 			case TId(id):
 				return id;
@@ -832,6 +836,50 @@ class Parser {
 					}
 				 */
 				mk(EImport(path.join('.'), asStr));
+
+			case "enum":
+				var name = getIdent();
+
+				ensure(TBrOpen);
+
+				var fields = [];
+
+				var currentName = "";
+				var currentArgs: Array<Argument> = null;
+
+				while (true) {
+					var tk = token();
+					switch (tk) {
+						case TBrClose:
+							break;
+						case TSemicolon | TComma:
+							if (currentName == "")
+								continue;
+
+							if (currentArgs != null && currentArgs.length > 0) {
+								fields.push(EnumType.EConstructor(currentName, currentArgs));
+								currentArgs = null;
+							} else {
+								fields.push(EnumType.ESimple(currentName));
+							}
+							currentName = "";
+						case TPOpen:
+							if (currentArgs != null) {
+								error(ECustom("Cannot have multiple argument lists in one enum constructor"), tokenMin, tokenMax);
+								break;
+							}
+							currentArgs = parseFunctionArgs();
+						default:
+							if (currentName != "") {
+								error(ECustom("Expected comma or semicolon"), tokenMin, tokenMax);
+								break;
+							}
+							var name = extractIdent(tk);
+							currentName = name;
+					}
+				}
+
+				mk(EEnum(name, fields));
 			default:
 				null;
 		}
@@ -1422,7 +1470,6 @@ class Parser {
 	tokenMax = (this.char < 0) ? readPos - 1 : readPos - 2;
 	return t;
 	} function _token() {
-
 	#else
 	if (!tokens.isEmpty())
 		return tokens.pop();

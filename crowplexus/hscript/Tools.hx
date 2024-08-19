@@ -133,7 +133,8 @@ class Tools {
 			case EObject(fl): EObject([for (fi in fl) {name: fi.name, e: f(fi.e)}]);
 			case ETernary(c, e1, e2): ETernary(f(c), f(e1), f(e2));
 			case ESwitch(e, cases, def): ESwitch(f(e), [
-					for (c in cases) {values: [for (v in c.values) f(v)], expr: f(c.expr), ifExpr: f(c.ifExpr)}
+					for (c in cases)
+						{values: [for (v in c.values) f(v)], expr: f(c.expr), ifExpr: f(c.ifExpr)}
 				], def == null ? null : f(def));
 			case EMeta(name, args, e): EMeta(name, args == null ? null : [for (a in args) f(a)], f(e));
 			case ECheckType(e, t): ECheckType(f(e), t);
@@ -158,5 +159,42 @@ class Tools {
 		#else
 		return e;
 		#end
+	}
+}
+
+class EnumValue {
+	public var enumName: String;
+	public var name: String;
+	public var args: Array<Dynamic>;
+
+	public function new(enumName: String, name: String, ?args: Array<Dynamic>) {
+		this.enumName = enumName;
+		this.name = name;
+		this.args = args;
+	}
+
+	public function toString(): String {
+		if (args == null)
+			return enumName + "." + name;
+		return enumName + "." + name + "(" + [for (arg in args) arg].join(", ") + ")";
+	}
+
+	public function compare(other: EnumValue): Bool {
+		if (enumName != other.enumName || name != other.name)
+			return false;
+		if (args == null && other.args == null)
+			return true;
+		if (args == null || other.args == null)
+			return false;
+		if (args.length != other.args.length)
+			return false;
+
+		for (i in 0...args.length) {
+			// TODO: allow deep comparison, like arrays
+			if (args[i] != other.args[i])
+				return false;
+		}
+
+		return true;
 	}
 }

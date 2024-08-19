@@ -56,7 +56,7 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 - [x] Import Aliases
 - [ ] Improved Error Handling
 - [x] Finals
-- [ ] Enums
+- [x] Enums
 - [ ] Structs
 - [ ] Classes
 

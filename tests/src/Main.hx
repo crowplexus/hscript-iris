@@ -12,7 +12,7 @@ class Main {
 	static function main() {
 		trace("Hello World!");
 
-		var myScript: Iris = new Iris("assets/test.hx");
+		var myScript: Iris = new Iris(sys.io.File.getContent("./assets/test.hx"));
 		myScript.execute();
 
 		var result = myScript.call("main"); // prints "Hello from Iris!"

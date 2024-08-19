@@ -40,41 +40,44 @@ typedef Expr = {
 	var line: Int;
 }
 
-enum ExprDef {
+enum ExprDef
 #else
 typedef ExprDef = Expr;
-enum Expr {
+enum Expr
 #end
-EConst(c:Const);
-EIdent(v:String);
-EImport(v:String, as:String);
-EVar(n:String, ?t:CType, ?e:Expr);
-EFinal(n:String, ?t:CType, ?e:Expr);
-EParent(e:Expr);
-EBlock(e:Array<Expr>);
-EField(e:Expr, f:String);
-EBinop(op:String, e1:Expr, e2:Expr);
-EUnop(op:String, prefix:Bool, e:Expr);
-ECall(e:Expr, params:Array<Expr>);
-EIf(cond:Expr, e1:Expr, ?e2:Expr);
-EWhile(cond:Expr, e:Expr);
-EFor(v:String, it:Expr, e:Expr);
-EBreak;
-EContinue;
-EFunction(args:Array<Argument>, e:Expr, ?name:String, ?ret:CType);
-EReturn(?e:Expr);
-EArray(e:Expr, index:Expr);
-EArrayDecl(e:Array<Expr>);
-ENew(cl:String, params:Array<Expr>);
-EThrow(e:Expr);
-ETry(e:Expr, v:String, t:Null<CType>, ecatch:Expr);
-EObject(fl:Array<{name: String, e: Expr}>);
-ETernary(cond:Expr, e1:Expr, e2:Expr);
-ESwitch(e:Expr, cases:Array<{values: Array<Expr>, expr: Expr, ifExpr: Expr}>, ?defaultExpr:Expr);
-EDoWhile(cond:Expr, e:Expr);
-EMeta(name:String, args:Array<Expr>, e:Expr);
-ECheckType(e:Expr, t:CType);
-} typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
+{
+	EConst(c:Const);
+	EIdent(v:String);
+	EImport(v:String, as:String);
+	EVar(n:String, ?t:CType, ?e:Expr);
+	EFinal(n:String, ?t:CType, ?e:Expr);
+	EParent(e:Expr);
+	EBlock(e:Array<Expr>);
+	EField(e:Expr, f:String);
+	EBinop(op:String, e1:Expr, e2:Expr);
+	EUnop(op:String, prefix:Bool, e:Expr);
+	ECall(e:Expr, params:Array<Expr>);
+	EIf(cond:Expr, e1:Expr, ?e2:Expr);
+	EWhile(cond:Expr, e:Expr);
+	EFor(v:String, it:Expr, e:Expr);
+	EBreak;
+	EContinue;
+	EFunction(args:Array<Argument>, e:Expr, ?name:String, ?ret:CType);
+	EReturn(?e:Expr);
+	EArray(e:Expr, index:Expr);
+	EArrayDecl(e:Array<Expr>);
+	ENew(cl:String, params:Array<Expr>);
+	EThrow(e:Expr);
+	ETry(e:Expr, v:String, t:Null<CType>, ecatch:Expr);
+	EObject(fl:Array<{name: String, e: Expr}>);
+	ETernary(cond:Expr, e1:Expr, e2:Expr);
+	ESwitch(e:Expr, cases:Array<{values: Array<Expr>, expr: Expr, ifExpr: Expr}>, ?defaultExpr:Expr);
+	EDoWhile(cond:Expr, e:Expr);
+	EMeta(name:String, args:Array<Expr>, e:Expr);
+	ECheckType(e:Expr, t:CType);
+	EEnum(name:String, fields:Array<EnumType>);
+}
+typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
 typedef Metadata = Array<{name: String, params: Array<Expr>}>;
 
 enum CType {
@@ -107,22 +110,24 @@ class Error {
 	}
 }
 
-enum ErrorDef {
+enum ErrorDef
 #else
-enum Error {
+enum Error
 #end
 
-EInvalidChar(c:Int);
-EUnexpected(s:String);
-EUnterminatedString;
-EUnterminatedComment;
-EInvalidPreprocessor(msg:String);
-EUnknownVariable(v:String);
-EInvalidIterator(v:String);
-EInvalidOp(op:String);
-EInvalidAccess(f:String);
-ECustom(msg:String);
-} enum ModuleDecl {
+{
+	EInvalidChar(c:Int);
+	EUnexpected(s:String);
+	EUnterminatedString;
+	EUnterminatedComment;
+	EInvalidPreprocessor(msg:String);
+	EUnknownVariable(v:String);
+	EInvalidIterator(v:String);
+	EInvalidOp(op:String);
+	EInvalidAccess(f:String);
+	ECustom(msg:String);
+}
+enum ModuleDecl {
 	DPackage(path: Array<String>);
 	DImport(path: Array<String>, ?everything: Bool, ?as: String);
 	DClass(c: ClassDecl);
@@ -181,4 +186,9 @@ typedef VarDecl = {
 	var set: Null<String>;
 	var expr: Null<Expr>;
 	var type: Null<CType>;
+}
+
+enum EnumType {
+	ESimple(name: String);
+	EConstructor(name: String, args: Array<Argument>);
 }

@@ -338,17 +338,35 @@ class Interp {
 	}
 
 	function resolve(id: String): Dynamic {
-		var l = locals.get(id);
-		if (l != null)
-			return l.r;
-		var v = variables.get(id);
-		if (v == null && !variables.exists(id)) {
-			if (imports.get(id) != null)
-				v = imports.get(id);
-			else
-				error(EUnknownVariable(id));
+		if (locals.exists(id)) {
+			var l = locals.get(id);
+			if (l != null)
+				return l.r;
 		}
-		return v;
+
+		if (variables.exists(id)) {
+			var v = variables.get(id);
+			if (v != null)
+				return v;
+		}
+
+		if (imports.exists(id)) {
+			var v = imports.get(id);
+			if (v != null)
+				return v;
+		}
+
+		error(EUnknownVariable(id));
+
+		return null;
+	}
+
+	function getClass(name: String): Dynamic {
+		var c: Dynamic = Type.resolveClass(name);
+		if (c == null) // try importing as enum
+			try
+				c = Type.resolveEnum(name);
+		return c;
 	}
 
 	public function expr(e: Expr): Dynamic {
@@ -452,13 +470,10 @@ class Interp {
 				if (as != null)
 					n = as;
 
-				if (imports.get(n) != null)
+				if (imports.exists(n))
 					return imports.get(n);
-				var c: Dynamic = cast(Type.resolveClass(v));
-				// try importing as enum
-				if (c == null)
-					try
-						c = cast(Type.resolveEnum(v));
+
+				var c: Dynamic = getClass(v);
 
 				if (c == null) // if it's still null then throw an error message.
 					throw error(ECustom("Import" + (as != null ? " named as " + as : "") + " of class " + v + " could not be added"));
@@ -650,6 +665,51 @@ class Interp {
 				return expr(e);
 			case ECheckType(e, _):
 				return expr(e);
+			case EEnum(enumName, fields):
+				var obj = {};
+				for (field in fields) {
+					switch (field) {
+						case ESimple(name):
+							Reflect.setField(obj, name, new EnumValue(enumName, name, null));
+						case EConstructor(name, params):
+							var hasOpt = false, minParams = 0;
+							for (p in params)
+								if (p.opt)
+									hasOpt = true;
+								else
+									minParams++;
+							var f = function(args: Array<Dynamic>) {
+								if (((args == null) ? 0 : args.length) != params.length) {
+									if (args.length < minParams) {
+										var str = "Invalid number of parameters. Got " + args.length + ", required " + minParams;
+										if (enumName != null)
+											str += " for enum '" + enumName + "'";
+										error(ECustom(str));
+									}
+									// make sure mandatory args are forced
+									var args2 = [];
+									var extraParams = args.length - minParams;
+									var pos = 0;
+									for (p in params)
+										if (p.opt) {
+											if (extraParams > 0) {
+												args2.push(args[pos++]);
+												extraParams--;
+											} else
+												args2.push(null);
+										} else
+											args2.push(args[pos++]);
+									args = args2;
+								}
+								return new EnumValue(enumName, name, args);
+							};
+							var f = Reflect.makeVarArgs(f);
+
+							Reflect.setField(obj, name, f);
+					}
+				}
+
+				variables.set(enumName, obj);
 		}
 		return null;
 	}

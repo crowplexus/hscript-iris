@@ -229,6 +229,6 @@ class Iris {
 	 * @param v 	Defines what to print to the console.
 	 */
 	inline function irisPrint(v): Void {
-		trace('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}\n');
+		Sys.println('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}');
 	}
 }

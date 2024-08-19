@@ -12,6 +12,8 @@
 # --define no-debug
 --dce no
 
+--define hscriptPos
+
 # Enables the analyzer optimizer
 --define analyzer-optimize
 
