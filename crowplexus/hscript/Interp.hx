@@ -33,12 +33,24 @@ private enum Stop {
 	SReturn;
 }
 
+@:structInit
+class LocalVar {
+	public var r: Dynamic;
+	public var const: Bool;
+}
+
+@:structInit
+class DeclaredVar {
+	public var n: String;
+	public var old: LocalVar;
+}
+
 class Interp {
 	#if haxe3
 	public var variables: Map<String, Dynamic>;
 	public var imports: Map<String, Dynamic>;
 
-	var locals: Map<String, {r: Dynamic, ?const: Bool}>;
+	var locals: Map<String, LocalVar>;
 	var binops: Map<String, Expr->Expr->Dynamic>;
 	#else
 	public var variables: Hash<Dynamic>;
@@ -50,7 +62,7 @@ class Interp {
 
 	var depth: Int;
 	var inTry: Bool;
-	var declared: Array<{n: String, old: {r: Dynamic, ?const: Bool}}>;
+	var declared: Array<DeclaredVar>;
 	var returnValue: Dynamic;
 
 	#if hscriptPos
@@ -510,7 +522,7 @@ class Interp {
 					me.depth++;
 					me.locals = me.duplicate(capturedLocals);
 					for (i in 0...params.length)
-						me.locals.set(params[i].name, {r: args[i]});
+						me.locals.set(params[i].name, {r: args[i], const: false});
 					var r = null;
 					var oldDecl = declared.length;
 					if (inTry)
@@ -540,7 +552,7 @@ class Interp {
 					} else {
 						// function-in-function is a local function
 						declared.push({n: name, old: locals.get(name)});
-						var ref = {r: f};
+						var ref: LocalVar = {r: f, const: false};
 						locals.set(name, ref);
 						capturedLocals.set(name, ref); // allow self-recursion
 					}
@@ -627,7 +639,7 @@ class Interp {
 					inTry = oldTry;
 					// declare 'v'
 					declared.push({n: n, old: locals.get(n)});
-					locals.set(n, {r: err});
+					locals.set(n, {r: err, const: false});
 					var v: Dynamic = expr(ecatch);
 					restore(old);
 					return v;
@@ -765,8 +777,10 @@ class Interp {
 		var old = declared.length;
 		declared.push({n: n, old: locals.get(n)});
 		var it = makeIterator(expr(it));
-		while (it.hasNext()) {
-			locals.set(n, {r: it.next()});
+		var _itHasNext = it.hasNext;
+		var _itNext = it.next;
+		while (_itHasNext()) {
+			locals.set(n, {r: _itNext(), const: false});
 			try {
 				expr(e);
 			} catch (err:Stop) {

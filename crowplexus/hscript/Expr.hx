@@ -32,12 +32,23 @@ enum Const {
 }
 
 #if hscriptPos
-typedef Expr = {
-	var e: ExprDef;
-	var pmin: Int;
-	var pmax: Int;
-	var origin: String;
-	var line: Int;
+@:structInit
+class Expr {
+	public var e: ExprDef;
+	public var pmin: Int;
+	public var pmax: Int;
+	public var origin: String;
+	public var line: Int;
+
+	public function toString(): String {
+		return Std.string({
+			e: e,
+			pmin: pmin,
+			pmax: pmax,
+			origin: origin,
+			line: line
+		});
+	}
 }
 
 enum ExprDef
@@ -69,9 +80,9 @@ enum Expr
 	ENew(cl:String, params:Array<Expr>);
 	EThrow(e:Expr);
 	ETry(e:Expr, v:String, t:Null<CType>, ecatch:Expr);
-	EObject(fl:Array<{name: String, e: Expr}>);
+	EObject(fl:Array<ObjectDecl>);
 	ETernary(cond:Expr, e1:Expr, e2:Expr);
-	ESwitch(e:Expr, cases:Array<{values: Array<Expr>, expr: Expr, ifExpr: Expr}>, ?defaultExpr:Expr);
+	ESwitch(e:Expr, cases:Array<SwitchCase>, ?defaultExpr:Expr);
 	EDoWhile(cond:Expr, e:Expr);
 	EMeta(name:String, args:Array<Expr>, e:Expr);
 	ECheckType(e:Expr, t:CType);
@@ -80,6 +91,27 @@ enum Expr
 }
 typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
 typedef Metadata = Array<{name: String, params: Array<Expr>}>;
+
+@:structInit
+class SwitchCase {
+	public var values: Array<Expr>;
+	public var expr: Expr;
+	public var ifExpr: Null<Expr>;
+
+	public function toString(): String {
+		return Std.string({values: values, expr: expr, ifExpr: ifExpr});
+	}
+}
+
+@:structInit
+class ObjectDecl {
+	public var name: String;
+	public var e: Expr;
+
+	public function toString(): String {
+		return Std.string({name: name, e: e});
+	}
+}
 
 enum CType {
 	CTPath(path: Array<String>, ?params: Array<CType>);

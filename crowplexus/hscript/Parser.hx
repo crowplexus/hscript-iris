@@ -47,6 +47,20 @@ enum Token {
 	TPrepro(s: String);
 }
 
+#if hscriptPos
+class TokenPos {
+	public var t: Token;
+	public var min: Int;
+	public var max: Int;
+
+	public function new(t, min, max) {
+		this.t = t;
+		this.min = min;
+		this.max = max;
+	}
+}
+#end
+
 class Parser {
 	// config / variables
 	public var line: Int;
@@ -100,7 +114,7 @@ class Parser {
 	var tokenMax: Int;
 	var oldTokenMin: Int;
 	var oldTokenMax: Int;
-	var tokens: List<{min: Int, max: Int, t: Token}>;
+	var tokens: List<TokenPos>;
 	#else
 	static inline var p1 = 0;
 	static inline var tokenMin = 0;
@@ -205,7 +219,7 @@ class Parser {
 
 	inline function push(tk) {
 		#if hscriptPos
-		tokens.push({t: tk, min: tokenMin, max: tokenMax});
+		tokens.push(new TokenPos(tk, tokenMin, tokenMax));
 		tokenMin = oldTokenMin;
 		tokenMax = oldTokenMax;
 		#else
@@ -336,7 +350,7 @@ class Parser {
 
 	function parseObject(p1) {
 		// parse object
-		var fl = new Array();
+		var fl: Array<ObjectDecl> = [];
 		while (true) {
 			var tk = token();
 			var id = null;
@@ -722,7 +736,7 @@ class Parser {
 					var tk = token();
 					switch (tk) {
 						case TId("case"):
-							var c = {values: [], expr: null, ifExpr: null};
+							var c: SwitchCase = {values: [], expr: null, ifExpr: null};
 							cases.push(c);
 							while (true) {
 								var e = parseExpr();
@@ -1084,7 +1098,7 @@ class Parser {
 											break;
 										if (op.charCodeAt(0) == ">".code) {
 											#if hscriptPos
-											tokens.add({t: TOp(op.substr(1)), min: tokenMax - op.length - 1, max: tokenMax});
+											tokens.add(new TokenPos(TOp(op.substr(1)), tokenMax - op.length - 1, tokenMax));
 											#else
 											tokens.add(TOp(op.substr(1)));
 											#end
@@ -1806,7 +1820,7 @@ class Parser {
 		return preprocesorValues.get(id);
 	}
 
-	var preprocStack: Array<{r: Bool}>;
+	var preprocStack: Array<Bool>;
 
 	function parsePreproCond() {
 		var tk = token();
@@ -1846,20 +1860,20 @@ class Parser {
 			case "if":
 				var e = parsePreproCond();
 				if (evalPreproCond(e)) {
-					preprocStack.push({r: true});
+					preprocStack.push(true);
 					return token();
 				}
-				preprocStack.push({r: false});
+				preprocStack.push(false);
 				skipTokens();
 				return token();
 			case "else", "elseif" if (preprocStack.length > 0):
-				if (preprocStack[preprocStack.length - 1].r) {
-					preprocStack[preprocStack.length - 1].r = false;
+				if (preprocStack[preprocStack.length - 1]) {
+					preprocStack[preprocStack.length - 1] = false;
 					skipTokens();
 					return token();
 				} else if (id == "else") {
 					preprocStack.pop();
-					preprocStack.push({r: true});
+					preprocStack.push(true);
 					return token();
 				} else {
 					// elseif
@@ -1964,5 +1978,13 @@ class Parser {
 			case TMeta(id): "@" + id;
 			case TPrepro(id): "#" + id;
 		}
+	}
+}
+
+final class PreprocessStackValue {
+	public var r: Bool;
+
+	public function new(r: Bool) {
+		this.r = r;
 	}
 }
