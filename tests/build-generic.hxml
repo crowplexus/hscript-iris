@@ -12,6 +12,8 @@
 # --define no-debug
 --dce no
 
+--define IRIS_DEBUG
+
 --define hscriptPos
 
 # Enables the analyzer optimizer

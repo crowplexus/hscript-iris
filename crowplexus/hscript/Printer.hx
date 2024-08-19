@@ -182,9 +182,13 @@ class Printer {
 					add(tabs);
 					add("}");
 				}
-			case EField(e, f):
+			case EField(e, f, s):
 				expr(e);
-				add("." + f);
+				if (s) {
+					add("?." + f);
+				} else {
+					add("." + f);
+				}
 			case EBinop(op, e1, e2):
 				expr(e1);
 				add(" " + op + " ");

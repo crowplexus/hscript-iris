@@ -32,6 +32,15 @@ function main() {
 	trace(0xFF);
 	trace(0xFF_FF);
 
+	var obj = null;
+	obj?.name = "Crow";
+	trace(obj?.name);
+
+	trace(obj?.name?.length ?? "invalid length");
+
+	obj ??= {name: "Crow"};
+	trace(obj.name);
+
 	return "Return value";
 }
 

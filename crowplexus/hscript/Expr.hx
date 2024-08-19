@@ -22,6 +22,8 @@
 
 package crowplexus.hscript;
 
+import crowplexus.hscript.Types.ByteUInt;
+
 enum Const {
 	CInt(v: Int);
 	CFloat(f: Float);
@@ -64,7 +66,7 @@ enum Expr
 	EFinal(n:String, ?t:CType, ?e:Expr);
 	EParent(e:Expr);
 	EBlock(e:Array<Expr>);
-	EField(e:Expr, f:String);
+	EField(e:Expr, f:String, s:Bool);
 	EBinop(op:String, e1:Expr, e2:Expr);
 	EUnop(op:String, prefix:Bool, e:Expr);
 	ECall(e:Expr, params:Array<Expr>);
@@ -194,13 +196,13 @@ typedef FieldDecl = {
 	var access: Array<FieldAccess>;
 }
 
-enum FieldAccess {
-	APublic;
-	APrivate;
-	AInline;
-	AOverride;
-	AStatic;
-	AMacro;
+enum abstract FieldAccess(ByteUInt) {
+	var APublic;
+	var APrivate;
+	var AInline;
+	var AOverride;
+	var AStatic;
+	var AMacro;
 }
 
 enum FieldKind {

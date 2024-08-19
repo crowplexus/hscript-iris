@@ -115,7 +115,7 @@ class Tools {
 			case EFinal(n, t, e): EFinal(n, t, if (e != null) f(e) else null);
 			case EParent(e): EParent(f(e));
 			case EBlock(el): EBlock([for (e in el) f(e)]);
-			case EField(e, fi): EField(f(e), fi);
+			case EField(e, fi, s): EField(f(e), fi, s);
 			case EBinop(op, e1, e2): EBinop(op, f(e1), f(e2));
 			case EUnop(op, pre, e): EUnop(op, pre, f(e));
 			case ECall(e, args): ECall(f(e), [for (a in args) f(a)]);

@@ -136,6 +136,10 @@ class Interp {
 		binops.set("||", function(e1, e2) return me.expr(e1) == true || me.expr(e2) == true);
 		binops.set("&&", function(e1, e2) return me.expr(e1) == true && me.expr(e2) == true);
 		binops.set("=", assign);
+		binops.set("??", function(e1, e2) {
+			var expr1: Dynamic = me.expr(e1);
+			return expr1 == null ? me.expr(e2) : expr1;
+		});
 		binops.set("...", function(e1, e2) return new InterpIterator(me, e1, e2));
 		assignOp("+=", function(v1: Dynamic, v2: Dynamic) return v1 + v2);
 		assignOp("-=", function(v1: Float, v2: Float) return v1 - v2);
@@ -148,9 +152,10 @@ class Interp {
 		assignOp("<<=", function(v1, v2) return v1 << v2);
 		assignOp(">>=", function(v1, v2) return v1 >> v2);
 		assignOp(">>>=", function(v1, v2) return v1 >>> v2);
+		assignOp("??" + "=", function(v1, v2) return v1 == null ? v2 : v1);
 	}
 
-	function setVar(name: String, v: Dynamic) {
+	inline function setVar(name: String, v: Dynamic) {
 		variables.set(name, v);
 	}
 
@@ -167,8 +172,14 @@ class Interp {
 					else
 						error(ECustom("Cannot reassign final, for constant expression -> " + id));
 				}
-			case EField(e, f):
-				v = set(expr(e), f, v);
+			case EField(e, f, s):
+				var e = expr(e);
+				if (e == null)
+					if (!s)
+						error(EInvalidAccess(f));
+					else
+						return null;
+				v = set(e, f, v);
 			case EArray(e, index):
 				var arr: Dynamic = expr(e);
 				var index: Dynamic = expr(index);
@@ -203,8 +214,13 @@ class Interp {
 					else
 						error(ECustom("Cannot reassign final, for constant expression -> " + id));
 				}
-			case EField(e, f):
+			case EField(e, f, s):
 				var obj = expr(e);
+				if (obj == null)
+					if (!s)
+						error(EInvalidAccess(f));
+					else
+						return null;
 				v = fop(get(obj, f), expr(e2));
 				v = set(obj, f, v);
 			case EArray(e, index):
@@ -250,8 +266,13 @@ class Interp {
 						setTo(v + delta);
 				}
 				return v;
-			case EField(e, f):
+			case EField(e, f, s):
 				var obj = expr(e);
+				if (obj == null)
+					if (!s)
+						error(EInvalidAccess(f));
+					else
+						return null;
 				var v: Dynamic = get(obj, f);
 				if (prefix) {
 					v += delta;
@@ -352,20 +373,17 @@ class Interp {
 	function resolve(id: String): Dynamic {
 		if (locals.exists(id)) {
 			var l = locals.get(id);
-			if (l != null)
-				return l.r;
+			return l.r;
 		}
 
 		if (variables.exists(id)) {
 			var v = variables.get(id);
-			if (v != null)
-				return v;
+			return v;
 		}
 
 		if (imports.exists(id)) {
 			var v = imports.get(id);
-			if (v != null)
-				return v;
+			return v;
 		}
 
 		error(EUnknownVariable(id));
@@ -390,10 +408,10 @@ class Interp {
 				}
 			case EIdent(id):
 				return resolve(id);
-			case EVar(n, t, v), EFinal(n, t, v):
+			case EVar(n, _, v), EFinal(n, _, v):
 				// i can't compare it on the spot -Crow
 				var isConst: Bool = switch (e) {
-					case EFinal(n, t, v): true;
+					case EFinal(_, _, _): true;
 					default: false;
 				}
 				declared.push({n: n, old: locals.get(n)});
@@ -408,7 +426,12 @@ class Interp {
 					v = expr(e);
 				restore(old);
 				return v;
-			case EField(e, f):
+			case EField(e, f, true):
+				var e = expr(e);
+				if (e == null)
+					return null;
+				return get(e, f);
+			case EField(e, f, false):
 				return get(expr(e), f);
 			case EBinop(op, e1, e2):
 				var fop = binops.get(op);
@@ -441,10 +464,11 @@ class Interp {
 					args.push(expr(p));
 
 				switch (Tools.expr(e)) {
-					case EField(e, f):
+					case EField(e, f, s):
 						var obj = expr(e);
 						if (obj == null)
-							error(EInvalidAccess(f));
+							if (!s)
+								error(EInvalidAccess(f));
 						return fcall(obj, f, args);
 					default:
 						return call(null, expr(e), args);
