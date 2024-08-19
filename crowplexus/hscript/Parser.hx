@@ -1564,6 +1564,7 @@ class Parser {
 						switch (char) {
 							case 48, 49, 50, 51, 52, 53, 54, 55, 56, 57:
 								n = n * 10 + (char - 48);
+							case '_'.code:
 							case "e".code, "E".code:
 								var tk = token();
 								var pow: Null<Int> = null;
@@ -1607,6 +1608,7 @@ class Parser {
 											n = (n << 4) + (char - 55);
 										case 97, 98, 99, 100, 101, 102: // a-f
 											n = (n << 4) + (char - 87);
+										case '_'.code:
 										default:
 											this.char = char;
 											return TConst(CInt(n));
@@ -1623,9 +1625,45 @@ class Parser {
 											n = haxe.Int32.add(haxe.Int32.shl(n, 4), cast(char - 55));
 										case 97, 98, 99, 100, 101, 102: // a-f
 											n = haxe.Int32.add(haxe.Int32.shl(n, 4), cast(char - 87));
+										case '_'.code:
 										default:
 											this.char = char;
 											// we allow to parse hexadecimal Int32 in Neko, but when the value will be
+											// evaluated by Interpreter, a failure will occur if no Int32 operation is
+											// performed
+											var v = try CInt(haxe.Int32.toInt(n)) catch (e:Dynamic) CInt32(n);
+											return TConst(v);
+									}
+								}
+								#end
+							case "b".code: // Custom thing, not supported in haxe
+								if (n > 0 || exp > 0)
+									invalidChar(char);
+								// read binary
+								#if haxe3
+								var n = 0;
+								while (true) {
+									char = readChar();
+									switch (char) {
+										case 48, 49: // 0-1
+											n = (n << 1) + char - 48;
+										case '_'.code:
+										default:
+											this.char = char;
+											return TConst(CInt(n));
+									}
+								}
+								#else
+								var n = haxe.Int32.ofInt(0);
+								while (true) {
+									char = readChar();
+									switch (char) {
+										case 48, 49: // 0-1
+											n = haxe.Int32.add(haxe.Int32.shl(n, 1), cast(char - 48));
+										case '_'.code:
+										default:
+											this.char = char;
+											// we allow to parse binary Int32 in Neko, but when the value will be
 											// evaluated by Interpreter, a failure will occur if no Int32 operation is
 											// performed
 											var v = try CInt(haxe.Int32.toInt(n)) catch (e:Dynamic) CInt32(n);

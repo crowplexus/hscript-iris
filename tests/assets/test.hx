@@ -27,6 +27,11 @@ function main() {
 	trace(HaxeStringMap);
 	trace(HaxeIntMap);
 
+	trace(0b1010);
+	trace(0b1010_1010);
+	trace(0xFF);
+	trace(0xFF_FF);
+
 	return "Return value";
 }
 
