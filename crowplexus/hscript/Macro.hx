@@ -183,7 +183,7 @@ class Macro {
 		};
 	}
 
-	public function convert(e: hscript.Expr): Expr {
+	public function convert(e: crowplexus.hscript.Expr): Expr {
 		return {
 			expr: switch (#if hscriptPos e.e #else e #end) {
 				case EConst(c):

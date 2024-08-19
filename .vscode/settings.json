@@ -1,6 +1,9 @@
 {
-    "editor.indentSize": "tabSize",
-    "editor.tabSize": 2,
-    "editor.detectIndentation": false,
-    "editor.insertSpaces": false
+	"editor.indentSize": "tabSize",
+	"editor.tabSize": 2,
+	"editor.detectIndentation": false,
+	"editor.insertSpaces": false,
+	"[haxe]": {
+		"editor.formatOnSave": true
+	}
 }

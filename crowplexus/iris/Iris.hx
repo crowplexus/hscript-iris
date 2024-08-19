@@ -52,6 +52,11 @@ class Iris {
 	var parser: Parser;
 
 	/**
+	 * Current initialized script expression.
+	**/
+	var expr: Expr;
+
+	/**
 	 * Helper variable for the error string caused by a nulled interpreter.
 	**/
 	final interpErrStr: String = "Careful, the interpreter hasn't been initialized";
@@ -104,7 +109,8 @@ class Iris {
 		#end
 
 		Iris.instances.set(ruleSet.name, this);
-		interp.execute(parser.parseString(scriptStr));
+		expr = parser.parseString(scriptStr);
+		interp.execute(expr);
 		running = true;
 	}
 

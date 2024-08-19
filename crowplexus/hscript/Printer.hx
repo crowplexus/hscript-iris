@@ -28,6 +28,8 @@ class Printer {
 	var buf: StringBuf;
 	var tabs: String;
 
+	var indent: String = "  ";
+
 	public function new() {}
 
 	public function exprToString(e: Expr) {
@@ -116,6 +118,13 @@ class Printer {
 		}
 	}
 
+	function addArgument(a: Argument) {
+		if (a.opt)
+			add("?");
+		add(a.name);
+		addType(a.t);
+	}
+
 	function expr(e: Expr) {
 		if (e == null) {
 			add("??NULL??");
@@ -162,14 +171,15 @@ class Printer {
 				if (el.length == 0) {
 					add("{}");
 				} else {
-					tabs += "\t";
+					incrementIndent();
 					add("{\n");
 					for (e in el) {
 						add(tabs);
 						expr(e);
 						add(";\n");
 					}
-					tabs = tabs.substr(1);
+					decrementIndent();
+					add(tabs);
 					add("}");
 				}
 			case EField(e, f):
@@ -249,10 +259,7 @@ class Printer {
 						first = false
 					else
 						add(", ");
-					if (a.opt)
-						add("?");
-					add(a.name);
-					addType(a.t);
+					addArgument(a);
 				}
 				add(")");
 				addType(ret);
@@ -315,7 +322,7 @@ class Printer {
 				if (fl.length == 0) {
 					add("{}");
 				} else {
-					tabs += "\t";
+					incrementIndent();
 					add("{\n");
 					for (f in fl) {
 						add(tabs);
@@ -323,7 +330,7 @@ class Printer {
 						expr(f.e);
 						add(",\n");
 					}
-					tabs = tabs.substr(1);
+					decrementIndent();
 					add("}");
 				}
 			case ETernary(c, e1, e2):
@@ -379,8 +386,35 @@ class Printer {
 				add(" : ");
 				addType(t);
 				add(")");
-			default:
+			case EEnum(name, params):
+				add("enum " + name + " {\n");
+				incrementIndent();
+				for (p in params) {
+					add(tabs);
+					switch p {
+						case EConstructor(name, args):
+							add(name);
+							add("(");
+							for (a in args)
+								addArgument(a);
+							add(")");
+						case ESimple(name):
+							add(name);
+					}
+					add(";\n");
+				}
+				decrementIndent();
+				add(tabs);
+				add("}");
 		}
+	}
+
+	inline function incrementIndent() {
+		tabs += indent;
+	}
+
+	inline function decrementIndent() {
+		tabs = tabs.substr(indent.length);
 	}
 
 	public static function toString(e: Expr) {

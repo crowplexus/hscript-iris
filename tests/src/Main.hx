@@ -5,9 +5,11 @@ import haxe.io.Path;
 import sys.FileSystem;
 import crowplexus.iris.Iris;
 import crowplexus.hscript.Parser;
+import crowplexus.hscript.Printer;
 
 using StringTools;
 
+@:access(crowplexus.iris.Iris)
 class Main {
 	static function main() {
 		trace("Hello World!");
@@ -19,6 +21,8 @@ class Main {
 
 		trace(result);
 
+		var printer = new Printer();
+		trace(printer.exprToString(myScript.expr));
 		// fullTestParseEntireSourceCode()
 	}
 
