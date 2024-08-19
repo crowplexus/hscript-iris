@@ -1,0 +1,13 @@
+build-generic.hxml
+--define macos
+--define mac
+
+# -D HXCPP_M64
+# -D HXCPP_ARM64
+
+# Copying the assets from source code to bin folder
+--cmd rm -rf bin/cpp/assets
+--cmd cp -r assets bin/cpp/assets
+--cpp bin/cpp
+--cmd cd bin/cpp
+--cmd ./Main

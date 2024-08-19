@@ -1,11 +1,11 @@
 {
     "name": "hscript-iris",
     "description": "a HScript Loader, built for simplicy and inclusion of missing features.",
-    "classPath": "src/",
+    "classPath": "",
     "version": "1.0.2",
     "releasenote": "Haxe 4.2.5 support",
     "license": "MIT",
 
     "url": "https://github.com/crowplexus/hscript-iris",
-    "contributors": ["crowplexus", "tahirk786"]
+    "contributors": ["crowplexus", "NeeEoo", "tahirk786"]
 }

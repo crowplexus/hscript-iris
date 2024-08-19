@@ -1,0 +1,18 @@
+# Generic Haxe stuffs to make the project compile
+-cp src
+# link to crowplexus library
+-cp ../
+-D analyzer-optimize
+-main Main
+
+# Defines (MAKE SURE TO KEEP THIS IN SYNC WITH ALL BUILD FILES)
+--define HXCPP_CHECK_POINTER
+--define HXCPP_STACK_LINE
+# --define HXCPP_DEBUG_LINK
+# --define no-debug
+--dce no
+
+# Enables the analyzer optimizer
+--define analyzer-optimize
+
+# ../extraParams.hxml
