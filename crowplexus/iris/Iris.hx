@@ -127,6 +127,7 @@ class Iris {
 	 * Appends Default Classes/Enums for the Script to use.
 	**/
 	public function preset(): Void {
+		set("Std", Std);
 		set("Math", Math);
 		set("StringTools", StringTools);
 	}
