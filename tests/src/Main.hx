@@ -15,6 +15,7 @@ class Main {
 	static function main() {
 		mainTest();
 		// mainBytes();
+		// testIndenticalNames();
 	}
 
 	static function mainTest() {
@@ -47,6 +48,21 @@ class Main {
 		// var printer = new Printer();
 		// trace(printer.exprToString(myScript.expr));
 		// fullTestParseEntireSourceCode()
+	}
+
+	/*
+	 * Test identical names, scripts that have indentical names will have a
+	 * number appended to their name according to its copy id
+	**/
+	static function testIndenticalNames() {
+		for (i in 0...8) {
+			var script = new Iris('trace("Hello World!");', {
+				name: "script",
+				autoRun: true,
+				preset: true
+			}).execute();
+		}
+		trace(Iris.instances);
 	}
 
 	public static function fullTestParseEntireSourceCode() {

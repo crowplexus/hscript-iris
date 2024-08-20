@@ -7,9 +7,9 @@ import crowplexus.hscript.*;
  * Initialization Rules for a Script
 **/
 typedef InitRules = {
-	var name: String;
-	var autoRun: Bool;
-	var preset: Bool;
+	name: String,
+	autoRun: Bool,
+	preset: Bool,
 }
 
 /**
@@ -61,6 +61,8 @@ class Iris {
 	**/
 	final interpErrStr: String = "Careful, the interpreter hasn't been initialized";
 
+	private var _scriptName: String = "";
+
 	/**
 	 * Instantiates a new Script with the string value.
 	 *
@@ -79,6 +81,9 @@ class Iris {
 
 		parser = new Parser();
 		interp = new Interp();
+
+		if (ruleSet.name != null)
+			_scriptName = ruleSet.name;
 
 		parser.allowTypes = true;
 		parser.allowMetadata = true;
@@ -103,10 +108,10 @@ class Iris {
 		}
 
 		// make sure to never have an indentically named instance.
-		var copyID: Int = 0;
+		var copyID: Int = 1;
 		while (Iris.instances.exists(ruleSet.name)) {
+			ruleSet.name = _scriptName + "_" + copyID;
 			copyID += 1;
-			ruleSet.name = "_" + copyID;
 		}
 		Iris.instances.set(ruleSet.name, this);
 
