@@ -13,11 +13,14 @@ using StringTools;
 @:access(crowplexus.iris.Iris)
 class Main {
 	static function main() {
-		mainTest();
-		// mainBytes();
+		// mainTest();
+		mainBytes();
 		// testIndenticalNames();
 	}
 
+	/**
+	 * Test main features (i.e: typedefs, enums, etc).
+	**/
 	static function mainTest() {
 		trace("Hello World!");
 
@@ -25,7 +28,6 @@ class Main {
 		myScript.execute();
 
 		var result = myScript.call("main"); // prints "Hello from Iris!"
-
 		trace(result);
 
 		var printer = new Printer();
@@ -33,6 +35,9 @@ class Main {
 		// fullTestParseEntireSourceCode()
 	}
 
+	/**
+	 * Test byte encoding.
+	**/
 	static function mainBytes() {
 		var myScript: Iris = new Iris(sys.io.File.getContent("./assets/bytes.hx"), {
 			autoRun: false,
@@ -52,21 +57,13 @@ class Main {
 
 	/*
 	 * Test identical names, scripts that have indentical names will have a
-	 * number appended to their name according to its copy id
+	 * number appended to their name according to its copy id.
 	**/
 	static function testIndenticalNames() {
-		var script = new Iris('trace("Hello World!");', {
-			name: "script"
-		}).execute();
-		var script2 = new Iris('trace("A!");', {
-			name: "script"
-		}).execute();
-		var script3 = new Iris('trace("B!");', {
-			name: "script"
-		}).execute();
-		var script = new Iris('trace("C!");', {
-			name: "script"
-		}).execute();
+		var script = new Iris('trace("Hello World!");', {name: "script"}).execute();
+		var script2 = new Iris('trace("A!");', {name: "script"}).execute();
+		var script3 = new Iris('trace("B!");', {name: "script"}).execute();
+		var script4 = new Iris('trace("C!");', {name: "script"}).execute();
 		trace(Iris.instances);
 	}
 
