@@ -70,7 +70,7 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 - [ ] Classes
 
 - Operators
-- - [ ] Null Coalescing Operator (??, ??=)
+- - [x] Null Coalescing Operator (??, ??=)
 
 ---
 
