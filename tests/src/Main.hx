@@ -55,13 +55,18 @@ class Main {
 	 * number appended to their name according to its copy id
 	**/
 	static function testIndenticalNames() {
-		for (i in 0...8) {
-			var script = new Iris('trace("Hello World!");', {
-				name: "script",
-				autoRun: true,
-				preset: true
-			}).execute();
-		}
+		var script = new Iris('trace("Hello World!");', {
+			name: "script"
+		}).execute();
+		var script2 = new Iris('trace("A!");', {
+			name: "script"
+		}).execute();
+		var script3 = new Iris('trace("B!");', {
+			name: "script"
+		}).execute();
+		var script = new Iris('trace("C!");', {
+			name: "script"
+		}).execute();
 		trace(Iris.instances);
 	}
 

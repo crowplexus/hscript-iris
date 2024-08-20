@@ -6,10 +6,11 @@ import crowplexus.hscript.*;
 /**
  * Initialization Rules for a Script
 **/
-typedef InitRules = {
-	name: String,
-	autoRun: Bool,
-	preset: Bool,
+@:structInit
+class InitRules {
+	public var name: String = "";
+	public var autoRun: Bool = true;
+	public var preset: Bool = true;
 }
 
 /**
@@ -61,8 +62,6 @@ class Iris {
 	**/
 	final interpErrStr: String = "Careful, the interpreter hasn't been initialized";
 
-	private var _scriptName: String = "";
-
 	/**
 	 * Instantiates a new Script with the string value.
 	 *
@@ -82,12 +81,10 @@ class Iris {
 		parser = new Parser();
 		interp = new Interp();
 
-		if (ruleSet.name != null)
-			_scriptName = ruleSet.name;
-
 		parser.allowTypes = true;
 		parser.allowMetadata = true;
 		parser.allowJSON = true;
+		fixScriptName(rules.name);
 		// set variables to the interpreter.
 		if (ruleSet.preset)
 			preset();
@@ -96,29 +93,32 @@ class Iris {
 			execute();
 	}
 
+	private function fixScriptName(defaultName: String): Void {
+		// make sure to never have an indentically named instance.
+		var copyID: Int = 1;
+		while (Iris.instances.exists(ruleSet.name)) {
+			ruleSet.name = defaultName + "_" + copyID;
+			copyID += 1;
+		}
+	}
+
 	/**
 	 * Executes this script and returns it.
 	**/
 	public function execute(): Iris {
 		if (running || interp == null) {
 			#if IRIS_DEBUG
-			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
+			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script " + ruleSet.name + " is already running!"));
 			#end
 			return this;
 		}
 
-		// make sure to never have an indentically named instance.
-		var copyID: Int = 1;
-		while (Iris.instances.exists(ruleSet.name)) {
-			ruleSet.name = _scriptName + "_" + copyID;
-			copyID += 1;
-		}
 		Iris.instances.set(ruleSet.name, this);
 
 		if (expr == null)
 			expr = parse();
 		interp.execute(expr);
-		running = true;
+		running = Iris.instances.exists(ruleSet.name);
 
 		return this;
 	}
