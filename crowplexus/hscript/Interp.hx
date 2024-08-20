@@ -579,7 +579,6 @@ class Interp {
 				}
 				return f;
 			case EArrayDecl(arr):
-				// Code from FNF-CNE-Devs/hscript-improved, segment written by @NeeEoo
 				if (arr.length > 0 && Tools.expr(arr[0]).match(EBinop("=>", _))) {
 					var isAllString: Bool = true;
 					var isAllInt: Bool = true;
@@ -618,7 +617,6 @@ class Interp {
 						setMapValue(map, keys[n], values[n]);
 					}
 					return map;
-					// End of FNF-CNE-Devs/hscript-improved segment
 				} else {
 					var a = new Array();
 					for (e in arr) {

@@ -19,4 +19,4 @@
 # Enables the analyzer optimizer
 --define analyzer-optimize
 
-# ../extraParams.hxml
+../extraParams.hxml
