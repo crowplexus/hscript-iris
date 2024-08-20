@@ -15,7 +15,7 @@ typedef InitRules = {
 /**
  * This basic object helps with the creation of scripts,
  * along with having neat helper functions to initialize and stop scripts
- * 
+ *
  * It is highly recommended that you override this class to add custom defualt variables and such.
 **/
 class Iris {
@@ -35,11 +35,11 @@ class Iris {
 	public var ruleSet: InitRules = null;
 
 	/**
-	 * The script string  for `this` script.
-	 * 
+	 * The code passed in the `new` function for this script.
+	 *
 	 * contains a full haxe script instance
 	**/
-	var scriptStr: String = "";
+	var scriptCode: String = "";
 
 	/**
 	 * Current initialized script interpreter.
@@ -63,19 +63,18 @@ class Iris {
 
 	/**
 	 * Instantiates a new Script with the string value.
-	 * 
+	 *
 	 * ```haxe
-	 * function hi() {
-	 * 		trace("Hello World!");
-	 * }
+	 * trace("Hello World!");
 	 * ```
-	 * @param scriptStr      the script to be parsed, e.g:
+	 * will trace "Hello World!" to the standard output.
+	 * @param scriptCode      the script to be parsed, e.g:
 	 */
-	public function new(scriptStr: String, ?rules: InitRules): Void {
+	public function new(scriptCode: String, ?rules: InitRules): Void {
 		if (rules == null)
-			rules = {name: "iris", autoRun: true, preset: true};
+			rules = {name: "Iris", autoRun: true, preset: true};
 
-		this.scriptStr = scriptStr;
+		this.scriptCode = scriptCode;
 		this.ruleSet = rules;
 
 		parser = new Parser();
@@ -84,35 +83,39 @@ class Iris {
 		parser.allowTypes = true;
 		parser.allowMetadata = true;
 		parser.allowJSON = true;
-
+		// set variables to the interpreter.
+		if (ruleSet.preset)
+			preset();
+		// run the script.
 		if (rules.autoRun)
 			execute();
 	}
 
 	/**
-	 * Executes this script
+	 * Executes this script and returns it.
 	**/
-	public function execute(): Void {
+	public function execute(): Iris {
 		if (running || interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script is already running!"));
 			#end
-			return;
+			return this;
 		}
 
-		if (ruleSet.preset)
-			preset();
-
-		#if hscriptPos
-		// overriding trace for good measure.
-		set("trace", irisPrint, true);
-		#end
-
+		// make sure to never have an indentically named instance.
+		var copyID: Int = 0;
+		while (Iris.instances.exists(ruleSet.name)) {
+			copyID += 1;
+			ruleSet.name = "_" + copyID;
+		}
 		Iris.instances.set(ruleSet.name, this);
+
 		if (expr == null)
 			expr = parse();
 		interp.execute(expr);
 		running = true;
+
+		return this;
 	}
 
 	public function parse() {
@@ -120,7 +123,7 @@ class Iris {
 			return expr;
 		if (expr != null)
 			return expr;
-		return expr = parser.parseString(scriptStr);
+		return expr = parser.parseString(scriptCode);
 	}
 
 	/**
@@ -130,6 +133,10 @@ class Iris {
 		set("Std", Std);
 		set("Math", Math);
 		set("StringTools", StringTools);
+		#if hscriptPos
+		// overriding trace for good measure.
+		set("trace", irisPrint, true);
+		#end
 	}
 
 	/**
@@ -214,7 +221,7 @@ class Iris {
 	/**
 	 * Destroys the current instance of this script
 	 * along with its parser, and also removes it from the `Iris.instances` map.
-	 * 
+	 *
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public function destroy(): Void {
@@ -229,7 +236,7 @@ class Iris {
 
 	/**
 	 * Destroys every single script found within the `Iris.instances` map.
-	 * 
+	 *
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public static function destroyAll(): Void {

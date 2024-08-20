@@ -64,9 +64,9 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 - [x] Finals
 - [x] Enums
 - - [ ] Abstract Enums
-- [ ] Typedefs
+- [x] Typedefs
 - - [x] Redirects
-- - [ ] Class Redirect (automatic import)
+- - [x] Class Redirect (automatic import)
 - [ ] Classes
 
 - Operators
