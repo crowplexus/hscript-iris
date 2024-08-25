@@ -59,8 +59,9 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 # FEATURES
 
 - [ ] Improved Error Handling
-- [x] Imports
-- - [x] Import Aliases
+- [x] Imports (i.e: `import ClassPackageAndName;`)
+- - [x] Import Aliases (i.e: `import ClassPackageAndName as ClassAlias;`)
+  - [ ] Using Keyword (i.e: `using StringTools;`.
 - [x] Finals
 - [x] Enums
 - - [ ] Abstract Enums
