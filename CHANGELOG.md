@@ -8,6 +8,7 @@ Collaborators in this update:
 - Added Typedef support.
 - Improved importing.
 - Improved error handling.
+- ANSI Colour support for the console when printing errors.
 
 # 1.0.2
 

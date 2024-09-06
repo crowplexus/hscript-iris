@@ -1,10 +1,13 @@
 package crowplexus.iris;
 
+import crowplexus.iris.utils.Ansi;
 import crowplexus.hscript.proxy.ProxyType;
 import haxe.ds.StringMap;
 import crowplexus.hscript.*;
 import crowplexus.iris.ErrorSeverity;
 import crowplexus.iris.IrisConfig;
+
+using crowplexus.iris.utils.Ansi;
 
 @:structInit
 class IrisCall {
@@ -85,13 +88,21 @@ class Iris {
 			for (i in pos.customParams)
 				out += "," + i;
 
-		var prefix = ErrorSeverityTools.getErrorSeverityPrefix(level);
-		if (prefix != "" && prefix != null)
+		var prefix = ErrorSeverityTools.getPrefix(level);
+		if (prefix != "" && prefix != null) {
 			prefix = '$prefix:';
-		if (pos.lineNumber == -1)
-			Sys.println('[$prefix${pos.fileName}]: ${out}');
-		else
-			Sys.println('[$prefix${pos.fileName}:${pos.lineNumber}]: ${out}');
+		}
+		var posPrefix = '[$prefix${pos.fileName}]';
+		if (pos.lineNumber != -1)
+			posPrefix = '[$prefix${pos.fileName}:${pos.lineNumber}]';
+
+		if (prefix != "" && prefix != null) {
+			posPrefix = posPrefix.fg(ErrorSeverityTools.getColor(level)).reset();
+			if (level == FATAL) {
+				posPrefix = posPrefix.attr(INTENSITY_BOLD);
+			}
+		}
+		Sys.println((posPrefix + ": " + out).stripColor());
 	}
 
 	/**
@@ -209,26 +220,25 @@ class Iris {
 	}
 
 	/**
-	 * Executes this script and returns it.
+	 * Executes this script and returns the interp's run result.
 	**/
-	public function execute(): Iris {
+	public function execute(): Dynamic {
 		if (/*running ||*/ interp == null) {
 			#if IRIS_DEBUG
-			// TODO: Iris.fatal
+			// TODO: use Iris.fatal?
 			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script " + this.name + " is already running!"));
 			#end
-			return this;
+			return null;
 		}
 
 		Iris.instances.set(this.name, this);
 
 		if (expr == null)
 			expr = parse();
-		interp.execute(expr);
 
 		// running = Iris.instances.exists(this.name);
 
-		return this;
+		return interp.execute(expr);
 	}
 
 	/**

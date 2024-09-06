@@ -71,7 +71,7 @@ class Interp {
 	var curExpr: Expr;
 	#end
 
-	public var showPosOnLog = true;
+	public var showPosOnLog: Bool = true;
 
 	public function new() {
 		#if haxe3
