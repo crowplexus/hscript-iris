@@ -1,16 +1,27 @@
 package crowplexus.iris;
 
+import crowplexus.hscript.proxy.ProxyType;
 import haxe.ds.StringMap;
 import crowplexus.hscript.*;
+import crowplexus.iris.ErrorSeverity;
+import crowplexus.iris.IrisConfig;
 
-/**
- * Initialization Rules for a Script
-**/
 @:structInit
-class InitRules {
-	public var name: String = "";
-	public var autoRun: Bool = true;
-	public var preset: Bool = true;
+class IrisCall {
+	/**
+	 * an HScript Function Name.
+	**/
+	public var funName: String;
+
+	/**
+	 * an HScript Function's signature.
+	**/
+	public var signature: Dynamic;
+
+	/**
+	 * an HScript Method's return value.
+	**/
+	public var returnValue: Dynamic;
 }
 
 /**
@@ -25,15 +36,107 @@ class Iris {
 	**/
 	public static var instances: StringMap<Iris> = new StringMap<Iris>();
 
-	///**
-	// * Checks if `this` script is running
-	//**/
-	//public var running: Bool = false;
+	/**
+	 * Contains Classes/Enums that cannot be accessed via HScript.
+	 *
+	 * you may find this useful if you want your project to be more secure.
+	**/
+	@:unreflective public static var blocklistImports: Array<String> = [];
 
 	/**
-	 * The current initialization rules for `this` script.
+	 * Contains proxies for classes. So they can be sandboxed or add extra functionality.
 	**/
-	public var ruleSet: InitRules = null;
+	@:unreflective public static var proxyImports: Map<String, Dynamic> = ["Type" => ProxyType];
+
+	public static function addBlocklistImport(name: String): Void {
+		blocklistImports.push(name);
+	}
+
+	public static function addProxyImport(name: String, value: Dynamic): Void {
+		proxyImports.set(name, value);
+	}
+
+	public static function getProxiedImport(name: String): Dynamic {
+		return proxyImports.get(name);
+	}
+
+	private static function getDefaultPos(name: String = "Iris"): haxe.PosInfos {
+		return {
+			fileName: name,
+			lineNumber: -1,
+			className: "UnknownClass",
+			methodName: "unknownFunction",
+			customParams: null
+		}
+	}
+
+	/**
+	 * Custom warning function for script wrappers.
+	 *
+	 * Overriding is recommended if you're doing custom error handling.
+	**/
+	public dynamic static function logLevel(level: ErrorSeverity, x, ?pos: haxe.PosInfos): Void {
+		if (pos == null) {
+			pos = getDefaultPos();
+		}
+
+		var out = Std.string(x);
+		if (pos != null && pos.customParams != null)
+			for (i in pos.customParams)
+				out += "," + i;
+
+		var prefix = ErrorSeverityTools.getErrorSeverityPrefix(level);
+		if (prefix != "" && prefix != null)
+			prefix = '$prefix:';
+		if (pos.lineNumber == -1)
+			Sys.println('[$prefix${pos.fileName}]: ${out}');
+		else
+			Sys.println('[$prefix${pos.fileName}:${pos.lineNumber}]: ${out}');
+	}
+
+	/**
+	 * Custom print function for script wrappers.
+	**/
+	public dynamic static function print(x, ?pos: haxe.PosInfos): Void {
+		logLevel(NONE, x, pos);
+	}
+
+	/**
+	 * Custom error function for script wrappers.
+	**/
+	public dynamic static function error(x, ?pos: haxe.PosInfos): Void {
+		logLevel(ERROR, x, pos);
+	}
+
+	/**
+	 * Custom warning function for script wrappers.
+	 *
+	 * Overriding is recommended if you're doing custom error handling.
+	**/
+	public dynamic static function warn(x, ?pos: haxe.PosInfos): Void {
+		logLevel(WARN, x, pos);
+	}
+
+	/**
+	 * Custom fatal error function for script wrappers.
+	**/
+	public dynamic static function fatal(x, ?pos: haxe.PosInfos): Void {
+		logLevel(FATAL, x, pos);
+	}
+
+	// **
+	// * Checks if `this` script is running
+	// **/
+	// public var running: Bool = false;
+	public var config: IrisConfig = null;
+
+	/**
+	 * Current script name, from `config.name`.
+	**/
+	public var name(get, never): String;
+
+	inline function get_name(): String
+		return config.name;
 
 	/**
 	 * The code passed in the `new` function for this script.
@@ -68,38 +171,41 @@ class Iris {
 	 * ```haxe
 	 * trace("Hello World!");
 	 * ```
+	 *
 	 * will trace "Hello World!" to the standard output.
 	 * @param scriptCode      the script to be parsed, e.g:
 	 */
-	public function new(scriptCode: String, ?rules: InitRules): Void {
-		if (rules == null)
-			rules = {name: "Iris", autoRun: true, preset: true};
-
+	public function new(scriptCode: String, ?config: AutoIrisConfig): Void {
+		if (config == null)
+			config = new IrisConfig("Iris", true, true, []);
 		this.scriptCode = scriptCode;
-		this.ruleSet = rules;
+		this.config = IrisConfig.from(config);
 
 		parser = new Parser();
 		interp = new Interp();
+		interp.showPosOnLog = false;
 
 		parser.allowTypes = true;
 		parser.allowMetadata = true;
 		parser.allowJSON = true;
-		fixScriptName(rules.name);
+
 		// set variables to the interpreter.
-		if (ruleSet.preset)
+		if (this.config.autoPreset)
 			preset();
 		// run the script.
-		if (rules.autoRun)
+		if (this.config.autoRun)
 			execute();
 	}
 
-	private function fixScriptName(defaultName: String): Void {
-		// make sure to never have an indentically named instance.
+	private function fixScriptName(toFix: String): String {
+		// makes sure that we never have instances with identical names.
+		var _name = toFix;
 		var copyID: Int = 1;
-		while (Iris.instances.exists(ruleSet.name)) {
-			ruleSet.name = defaultName + "_" + copyID;
+		while (Iris.instances.exists(name)) {
+			_name = toFix + "_" + copyID;
 			copyID += 1;
 		}
+		return _name;
 	}
 
 	/**
@@ -108,41 +214,57 @@ class Iris {
 	public function execute(): Iris {
 		if (/*running ||*/ interp == null) {
 			#if IRIS_DEBUG
-			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script " + ruleSet.name + " is already running!"));
+			// TODO: Iris.fatal
+			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script " + this.name + " is already running!"));
 			#end
 			return this;
 		}
 
-		Iris.instances.set(ruleSet.name, this);
+		Iris.instances.set(this.name, this);
 
 		if (expr == null)
 			expr = parse();
 		interp.execute(expr);
-		// running = Iris.instances.exists(ruleSet.name);
+
+		// running = Iris.instances.exists(this.name);
 
 		return this;
 	}
 
-	public function parse() {
+	/**
+	 * If you want to override the script, you should do parse(true);
+	 *
+	 * just parse(); otherwise, forcing may fix some behaviour depending on your implementation.
+	**/
+	public function parse(force: Bool = false) {
 		/*
-		if (running)
-			return expr;
-		*/
-		if (expr != null)
-			return expr;
-		return expr = parser.parseString(scriptCode);
+			if (running)
+				return expr;
+		 */
+		if (force || expr == null) {
+			expr = parser.parseString(scriptCode, this.name);
+		}
+		return expr;
 	}
 
 	/**
 	 * Appends Default Classes/Enums for the Script to use.
 	**/
 	public function preset(): Void {
-		set("Std", Std);
-		set("Math", Math);
+		set("Std", Std); // TODO: add a proxy for std
 		set("StringTools", StringTools);
+		set("Math", Math);
 		#if hscriptPos
 		// overriding trace for good measure.
-		set("trace", irisPrint, true);
+		// if you're a game developer or a fnf modder (hi guys),
+		// you might wanna use Iris.print for your on-screen consoles and such.
+		set("trace", Reflect.makeVarArgs(function(x: Array<Dynamic>) {
+			var pos = this.interp != null ? this.interp.posInfos() : Iris.getDefaultPos();
+			var v = x.shift();
+			if (x.length > 0)
+				pos.customParams = x;
+			Iris.print(v, pos);
+		}));
 		#end
 	}
 
@@ -153,7 +275,7 @@ class Iris {
 	public function get(field: String): Dynamic {
 		#if IRIS_DEBUG
 		if (interp == null)
-			trace("[Iris:get()]: " + interpErrStr + ", returning false...");
+			Iris.fatal("[Iris:get()]: " + interpErrStr + ", when trying to get variable \"" + field + "\", returning false...");
 		#end
 		return interp != null ? interp.variables.get(field) : false;
 	}
@@ -165,21 +287,15 @@ class Iris {
 	 * @param allowOverride If set to true, when setting the new field, we will ignore any previously set fields of the same name.
 	 */
 	public function set(name: String, value: Dynamic, allowOverride: Bool = true): Void {
-		if (interp == null) {
+		if (interp == null || interp.variables == null) {
 			#if IRIS_DEBUG
-			trace("[Iris:set()]: " + interpErrStr + ", so variables cannot be set.");
+			Iris.fatal("[Iris:set()]: " + interpErrStr + ", when trying to set variable \"" + name + "\" so variables cannot be set.");
 			#end
 			return;
 		}
 
-		try {
-			if (allowOverride || !interp.variables.exists(name))
-				interp.variables.set(name, value);
-		} catch (e:haxe.Exception) {
-			#if IRIS_DEBUG
-			irisPrint("[Iris:set()]: We are sorry, something went terribly wrong, Error: " + e);
-			#end
-		}
+		if (allowOverride || !interp.variables.exists(name))
+			interp.variables.set(name, value);
 	}
 
 	/**
@@ -187,30 +303,39 @@ class Iris {
 	 * @param fun       The name of the method you wanna call.
 	 * @param args      The arguments that the method needs.
 	 */
-	public function call(fun: String, ?args: Array<Dynamic>): Dynamic {
+	public function call(fun: String, ?args: Array<Dynamic>): IrisCall {
 		if (interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:call()]: " + interpErrStr + ", so functions cannot be called.");
 			#end
-			return 0;
+			return null;
 		}
 
 		if (args == null)
 			args = [];
 
 		// fun-ny
-		var ny: Dynamic = interp.variables.get(fun);
+		var ny: Dynamic = interp.variables.get(fun); // function signature
 		if (ny != null && Reflect.isFunction(ny)) {
 			try {
 				final ret = Reflect.callMethod(null, ny, args);
-				return {methodName: fun, methodReturn: ny, methodVal: ret}
-			} catch (e:haxe.Exception) {
-				#if IRIS_DEBUG
-				irisPrint("[Iris:call()]: We are sorry, something went terribly wrong, Error: " + e);
-				#end
+				if (ret == null)
+					throw "Null Function Pointer, for HScript function \"" + fun + "\"";
+				return {funName: fun, signature: ny, returnValue: ret}
 			}
+			// @formatter:off
+			#if hscriptPos
+			catch (e:Expr.Error) {
+				// [Iris:call()]:
+				Iris.error(Printer.errorToString(e, false), this.interp.posInfos());
+			}
+			#end
+			catch (e:haxe.Exception) {
+				Iris.error(Std.string(e), this.interp.posInfos());
+			}
+			// @formatter:on
 		}
-		return 0;
+		return null;
 	}
 
 	/**
@@ -232,13 +357,11 @@ class Iris {
 	 * **WARNING**: this action CANNOT be undone.
 	**/
 	public function destroy(): Void {
-		if (Iris.instances.exists(ruleSet.name))
-			Iris.instances.remove(ruleSet.name);
-
+		if (Iris.instances.exists(this.name))
+			Iris.instances.remove(this.name);
 		// running = false;
 		interp = null;
 		parser = null;
-		ruleSet = null;
 	}
 
 	/**
@@ -252,13 +375,5 @@ class Iris {
 				continue;
 			Iris.instances.get(key).destroy();
 		}
-	}
-
-	/**
-	 * Special print function for Scripts.
-	 * @param v 	Defines what to print to the console.
-	 */
-	inline function irisPrint(v): Void {
-		Sys.println('[${ruleSet.name}:${interp.posInfos().lineNumber}]: ${v}');
 	}
 }

@@ -31,8 +31,24 @@ class Main {
 		trace(result);
 
 		var printer = new Printer();
-		trace(printer.exprToString(myScript.expr));
+		// trace(printer.exprToString(myScript.expr));
 		// fullTestParseEntireSourceCode()
+
+		var enum1 = Test.A;
+		var enum2 = Test.A;
+		trace("Test.A == Test.A: " + (enum1 == enum2));
+		trace("Type.enumEq(Test.A, Test.A): " + Type.enumEq(enum1, enum2));
+
+		var enum3 = Test.D(0);
+		var enum4 = Test.D(0);
+		trace("Test.D(0) == Test.D(0): " + (enum3 == enum4));
+		trace("Type.enumEq(Test.D(0), Test.D(0)): " + Type.enumEq(enum3, enum4));
+
+		trace("[1,2,3] == [1,2,3]: " + ([1, 2, 3] == [1, 2, 3]));
+
+		var test = Test2.A(["Hello", "World"]);
+		var test2 = Test2.A(["Hello", "World"]);
+		trace(Type.enumEq(test, test2));
 	}
 
 	/**
@@ -41,7 +57,7 @@ class Main {
 	static function mainBytes() {
 		var myScript: Iris = new Iris(sys.io.File.getContent("./assets/bytes.hx"), {
 			autoRun: false,
-			preset: false,
+			autoPreset: false,
 			name: "bytes"
 		});
 		myScript.parse();
@@ -92,4 +108,15 @@ class Main {
 			trace(tokens);
 		}
 	}
+}
+
+enum Test {
+	A;
+	B;
+	C;
+	D(a: Int);
+}
+
+enum Test2 {
+	A(a: Array<String>);
 }

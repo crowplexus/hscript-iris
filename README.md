@@ -41,7 +41,6 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 ### Haxe Project Example
 ```hxml
 --library hscript-iris
-
 # this is optional and can be added if wanted
 # provides descriptive traces and better error handling at runtime
 -D hscriptPos
@@ -58,7 +57,7 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 
 # FEATURES
 
-- [ ] Improved Error Handling
+- [x] Improved Error Handling (**Completed-ish**)?
 - [x] Imports (i.e: `import ClassPackageAndName;`)
 - - [x] Import Aliases (i.e: `import ClassPackageAndName as ClassAlias;`)
   - [ ] Using Keyword (i.e: `using StringTools;`)
@@ -68,7 +67,10 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 - [x] Typedefs
 - - [x] Redirects
 - - [x] Class Redirect (automatic import)
-- [ ] Classes
+- [ ] Classes? (**we, as developers, are unsure if this is necessary, alright?**)
+- [ ] Regex?
+- [ ] Sandboxing
+- [ ] Automatic instance finding (`this` variable would be set for scripts, which allows being able to access variables from a set class without having to type it out, i.e: PlayState.instance)
 
 - Operators
 - - [x] Null Coalescing Operator (??, ??=)
@@ -109,11 +111,12 @@ function countUpTo(number:Int) {
 // *
 
 import crowplexus.iris.Iris;
+import crowplexus.iris.IrisConfig;
 
 class Main {
 	static function main():Void {
 		// reminder that the rules are completely optional.
-		final rules:InitRules = {name: "My Script", autoRun: false, preset: true};
+		final rules:RawIrisConfig = {name: "My Script", autoRun: false, preset: true};
 		final getText:String->String = #if sys sys.io.File.getContent #elseif openfl openfl.utils.Assets.getText #end;
 		var myScript:Iris = new Iris(getText("assets/scripts/hi.hx"), rules);
 

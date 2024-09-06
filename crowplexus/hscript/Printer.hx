@@ -478,7 +478,7 @@ class Printer {
 		return new Printer().exprToString(e);
 	}
 
-	public static function errorToString(e: Expr.Error) {
+	public static function errorToString(e: Expr.Error, showPos: Bool = true) {
 		var message = switch (#if hscriptPos e.e #else e #end) {
 			case EInvalidChar(c): "Invalid character: '" + (StringTools.isEof(c) ? "EOF" : String.fromCharCode(c)) + "' (" + c + ")";
 			case EUnexpected(s): "Unexpected token: \"" + s + "\"";
@@ -493,7 +493,10 @@ class Printer {
 			default: "Unknown Error.";
 		};
 		#if hscriptPos
-		return e.origin + ":" + e.line + ": " + message;
+		if (showPos)
+			return e.origin + ":" + e.line + ": " + message;
+		else
+			return message;
 		#else
 		return message;
 		#end

@@ -22,6 +22,8 @@
 
 package crowplexus.hscript;
 
+import crowplexus.iris.Iris;
+import crowplexus.hscript.proxy.ProxyType;
 import haxe.PosInfos;
 import crowplexus.hscript.Expr;
 import crowplexus.hscript.Tools;
@@ -68,6 +70,8 @@ class Interp {
 	#if hscriptPos
 	var curExpr: Expr;
 	#end
+
+	public var showPosOnLog = true;
 
 	public function new() {
 		#if haxe3
@@ -155,7 +159,7 @@ class Interp {
 		assignOp("??" + "=", function(v1, v2) return v1 == null ? v2 : v1);
 	}
 
-	inline function setVar(name: String, v: Dynamic) {
+	public inline function setVar(name: String, v: Dynamic) {
 		variables.set(name, v);
 	}
 
@@ -170,7 +174,7 @@ class Interp {
 					if (l.const != true)
 						l.r = v;
 					else
-						error(ECustom("Cannot reassign final, for constant expression -> " + id));
+						warn(ECustom("Cannot reassign final, for constant expression -> " + id));
 				}
 			case EField(e, f, s):
 				var e = expr(e);
@@ -212,7 +216,7 @@ class Interp {
 					if (l.const != true)
 						l.r = v;
 					else
-						error(ECustom("Cannot reassign final, for constant expression -> " + id));
+						warn(ECustom("Cannot reassign final, for constant expression -> " + id));
 				}
 			case EField(e, f, s):
 				var obj = expr(e);
@@ -362,6 +366,13 @@ class Interp {
 		return null;
 	}
 
+	inline function warn(e: #if hscriptPos ErrorDef #else Error #end): Dynamic {
+		#if hscriptPos var e = new Error(e, curExpr.pmin, curExpr.pmax, curExpr.origin, curExpr.line); #end
+
+		Iris.warn(Printer.errorToString(e, showPosOnLog), #if hscriptPos posInfos() #else null #end);
+		return null;
+	}
+
 	inline function rethrow(e: Dynamic) {
 		#if hl
 		hl.Api.rethrow(e);
@@ -389,6 +400,12 @@ class Interp {
 		error(EUnknownVariable(id));
 
 		return null;
+	}
+
+	public function getOrImportClass(name: String): Dynamic {
+		if (Iris.proxyImports.exists(name))
+			return Iris.proxyImports.get(name);
+		return Tools.getClass(name);
 	}
 
 	public function expr(e: Expr): Dynamic {
@@ -488,22 +505,26 @@ class Interp {
 				returnValue = e == null ? null : expr(e);
 				throw SReturn;
 			case EImport(v, as):
-				function last(arr: Array<String>)
-					return arr[arr.length - 1];
+				final aliasStr = (as != null ? " named as " + as : ""); // for errors
+				if (Iris.blocklistImports.contains(v)) {
+					error(ECustom("You cannot add a blacklisted import, for class " + v + aliasStr));
+					return null;
+				}
 
-				var n: String = last(v.split("."));
-				if (as != null)
-					n = as;
-
+				var n = Tools.last(v.split("."));
 				if (imports.exists(n))
 					return imports.get(n);
 
-				var c: Dynamic = Tools.getClass(v);
-
+				var c: Dynamic = getOrImportClass(v);
 				if (c == null) // if it's still null then throw an error message.
-					throw error(ECustom("Import" + (as != null ? " named as " + as : "") + " of class " + v + " could not be added"));
-				else
+					return warn(ECustom("Import" + aliasStr + " of class " + v + " could not be added"));
+				else {
 					imports.set(n, c);
+					if (as != null)
+						imports.set(as, c);
+					// resembles older haxe versions where you could use both the alias and the import
+					// for all the "Colour" enjoyers :D
+				}
 				return null; // yeah. -Crow
 
 			case EFunction(params, fexpr, name, _):
@@ -692,10 +713,10 @@ class Interp {
 				return expr(e);
 			case EEnum(enumName, fields):
 				var obj = {};
-				for (field in fields) {
+				for (index => field in fields) {
 					switch (field) {
 						case ESimple(name):
-							Reflect.setField(obj, name, new EnumValue(enumName, name, null));
+							Reflect.setField(obj, name, new EnumValue(enumName, name, index, null));
 						case EConstructor(name, params):
 							var hasOpt = false, minParams = 0;
 							for (p in params)
@@ -726,7 +747,7 @@ class Interp {
 											args2.push(args[pos++]);
 									args = args2;
 								}
-								return new EnumValue(enumName, name, args);
+								return new EnumValue(enumName, name, index, args);
 							};
 							var f = Reflect.makeVarArgs(f);
 

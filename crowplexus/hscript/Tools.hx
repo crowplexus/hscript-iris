@@ -167,16 +167,21 @@ class Tools {
 				c = Type.resolveEnum(name);
 		return c;
 	}
+
+	public static function last(arr: Array<String>): String
+		return arr[arr.length - 1];
 }
 
 class EnumValue {
 	public var enumName: String;
 	public var name: String;
+	public var index: Int;
 	public var args: Array<Dynamic>;
 
-	public function new(enumName: String, name: String, ?args: Array<Dynamic>) {
+	public function new(enumName: String, name: String, index: Int, ?args: Array<Dynamic>) {
 		this.enumName = enumName;
 		this.name = name;
+		this.index = index;
 		this.args = args;
 	}
 
@@ -185,6 +190,12 @@ class EnumValue {
 			return enumName + "." + name;
 		return enumName + "." + name + "(" + [for (arg in args) arg].join(", ") + ")";
 	}
+
+	public inline function getEnumName(): String
+		return this.enumName;
+
+	public inline function getConstructorArgs(): Array<Dynamic>
+		return this.args != null ? this.args : [];
 
 	public function compare(other: EnumValue): Bool {
 		if (enumName != other.enumName || name != other.name)

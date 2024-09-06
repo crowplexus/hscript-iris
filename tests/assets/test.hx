@@ -1,4 +1,5 @@
 import haxe.ds.StringMap;
+import Type;
 
 typedef HaxeStringMap = StringMap;
 typedef HaxeIntMap = haxe.ds.IntMap;
@@ -58,6 +59,27 @@ function main() {
 			trace("Not Matching");
 	}
 
+	var enum1 = Test.A;
+	var enum2 = Test.A;
+	trace("Test.A == Test.A: " + (enum1 == enum2));
+	trace("Type.enumEq(Test.A, Test.A): " + Type.enumEq(enum1, enum2));
+
+	var enum3 = Test.D(0);
+	var enum4 = Test.D(0);
+	trace("Test.D(0) == Test.D(0): " + (enum3 == enum4));
+	trace("Type.enumEq(Test.D(0), Test.D(0)): " + Type.enumEq(enum3, enum4));
+
+	trace("[1,2,3] == [1,2,3]: " + ([1, 2, 3] == [1, 2, 3]));
+
+	var test = Test2.A(["Hello", "World"]);
+	var test2 = Test2.A(["Hello", "World"]);
+	trace(Type.enumEq(test, test2));
+
+	final m = "...";
+	m = "ajkfd";
+
+	someFuncThatDoesntExist();
+
 	return "Return value";
 }
 
@@ -66,4 +88,8 @@ enum Test {
 	B;
 	C;
 	D(a: Int);
+}
+
+enum Test2 {
+	A(a: Array<String>);
 }

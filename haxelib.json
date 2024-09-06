@@ -1,9 +1,9 @@
 {
     "name": "hscript-iris",
-    "description": "a HScript Loader, built for simplicy and inclusion of missing features.",
+    "description": "a HScript Loader, built for simplicity and inclusion of missing features.",
     "classPath": "",
-    "version": "1.0.2",
-    "releasenote": "Haxe 4.2.5 support",
+    "version": "1.1.0",
+    "releasenote": "Improved Imports, Improved Error Handling, Enum Support, Typedef Support",
     "license": "MIT",
 
     "url": "https://github.com/crowplexus/hscript-iris",
