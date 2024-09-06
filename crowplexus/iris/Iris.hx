@@ -25,10 +25,10 @@ class Iris {
 	**/
 	public static var instances: StringMap<Iris> = new StringMap<Iris>();
 
-	/**
-	 * Checks if `this` script is running
-	**/
-	public var running: Bool = false;
+	///**
+	// * Checks if `this` script is running
+	//**/
+	//public var running: Bool = false;
 
 	/**
 	 * The current initialization rules for `this` script.
@@ -106,7 +106,7 @@ class Iris {
 	 * Executes this script and returns it.
 	**/
 	public function execute(): Iris {
-		if (running || interp == null) {
+		if (/*running ||*/ interp == null) {
 			#if IRIS_DEBUG
 			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script " + ruleSet.name + " is already running!"));
 			#end
@@ -118,14 +118,16 @@ class Iris {
 		if (expr == null)
 			expr = parse();
 		interp.execute(expr);
-		running = Iris.instances.exists(ruleSet.name);
+		// running = Iris.instances.exists(ruleSet.name);
 
 		return this;
 	}
 
 	public function parse() {
+		/*
 		if (running)
 			return expr;
+		*/
 		if (expr != null)
 			return expr;
 		return expr = parser.parseString(scriptCode);
@@ -233,7 +235,7 @@ class Iris {
 		if (Iris.instances.exists(ruleSet.name))
 			Iris.instances.remove(ruleSet.name);
 
-		running = false;
+		// running = false;
 		interp = null;
 		parser = null;
 		ruleSet = null;
