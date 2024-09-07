@@ -49,6 +49,9 @@ class Main {
 		var test = Test2.A(["Hello", "World"]);
 		var test2 = Test2.A(["Hello", "World"]);
 		trace(Type.enumEq(test, test2));
+
+		var result = myScript.call("non existent function");
+		trace(result);
 	}
 
 	/**

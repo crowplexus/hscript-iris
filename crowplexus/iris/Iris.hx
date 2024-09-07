@@ -135,10 +135,9 @@ class Iris {
 		logLevel(FATAL, x, pos);
 	}
 
-	// **
-	// * Checks if `this` script is running
-	// **/
-	// public var running: Bool = false;
+	/**
+	 * Config file, set when creating a new `Iris` instance.
+	**/
 	public var config: IrisConfig = null;
 
 	/**
@@ -191,6 +190,7 @@ class Iris {
 			config = new IrisConfig("Iris", true, true, []);
 		this.scriptCode = scriptCode;
 		this.config = IrisConfig.from(config);
+		this.config.name = fixScriptName(this.name);
 
 		parser = new Parser();
 		interp = new Interp();
@@ -208,11 +208,11 @@ class Iris {
 			execute();
 	}
 
-	private function fixScriptName(toFix: String): String {
+	private static function fixScriptName(toFix: String): String {
 		// makes sure that we never have instances with identical names.
 		var _name = toFix;
 		var copyID: Int = 1;
-		while (Iris.instances.exists(name)) {
+		while (Iris.instances.exists(_name)) {
 			_name = toFix + "_" + copyID;
 			copyID += 1;
 		}
@@ -223,21 +223,14 @@ class Iris {
 	 * Executes this script and returns the interp's run result.
 	**/
 	public function execute(): Dynamic {
-		if (/*running ||*/ interp == null) {
-			#if IRIS_DEBUG
-			// TODO: use Iris.fatal?
-			trace("[Iris:execute()]: " + (interp == null ? interpErrStr + ", Aborting." : "Script " + this.name + " is already running!"));
-			#end
-			return null;
-		}
-
-		Iris.instances.set(this.name, this);
+		// I'm sorry but if you just decide to destroy the script at will, that's your fault
+		if (interp == null)
+			throw "Attempt to run script failed, script is probably destroyed.";
 
 		if (expr == null)
 			expr = parse();
 
-		// running = Iris.instances.exists(this.name);
-
+		Iris.instances.set(this.name, this);
 		return interp.execute(expr);
 	}
 
@@ -247,10 +240,6 @@ class Iris {
 	 * just parse(); otherwise, forcing may fix some behaviour depending on your implementation.
 	**/
 	public function parse(force: Bool = false) {
-		/*
-			if (running)
-				return expr;
-		 */
 		if (force || expr == null) {
 			expr = parser.parseString(scriptCode, this.name);
 		}
@@ -326,25 +315,27 @@ class Iris {
 
 		// fun-ny
 		var ny: Dynamic = interp.variables.get(fun); // function signature
-		if (ny != null && Reflect.isFunction(ny)) {
-			try {
-				final ret = Reflect.callMethod(null, ny, args);
-				if (ret == null)
-					throw "Null Function Pointer, for HScript function \"" + fun + "\"";
-				return {funName: fun, signature: ny, returnValue: ret}
-			}
-			// @formatter:off
-			#if hscriptPos
-			catch (e:Expr.Error) {
-				// [Iris:call()]:
-				Iris.error(Printer.errorToString(e, false), this.interp.posInfos());
-			}
-			#end
-			catch (e:haxe.Exception) {
-				Iris.error(Std.string(e), this.interp.posInfos());
-			}
-			// @formatter:on
+		var isFunction: Bool = false;
+		try {
+			isFunction = ny != null && Reflect.isFunction(ny);
+			if (!isFunction)
+				throw 'Tried to call a non-function, for "$fun"';
+			// throw "Variable not found or not callable, for \"" + fun + "\"";
+
+			final ret = Reflect.callMethod(null, ny, args);
+			return {funName: fun, signature: ny, returnValue: ret};
 		}
+		// @formatter:off
+		#if hscriptPos
+		catch (e:Expr.Error) {
+			Iris.error(Printer.errorToString(e, false), this.interp.posInfos());
+		}
+		#end
+		catch (e:haxe.Exception) {
+			var pos = isFunction ? this.interp.posInfos() : Iris.getDefaultPos(this.name);
+			Iris.error(Std.string(e), pos);
+		}
+		// @formatter:on
 		return null;
 	}
 
@@ -369,7 +360,6 @@ class Iris {
 	public function destroy(): Void {
 		if (Iris.instances.exists(this.name))
 			Iris.instances.remove(this.name);
-		// running = false;
 		interp = null;
 		parser = null;
 	}
@@ -381,9 +371,13 @@ class Iris {
 	**/
 	public static function destroyAll(): Void {
 		for (key in Iris.instances.keys()) {
-			if (Iris.instances.get(key).interp == null)
+			var iris = Iris.instances.get(key);
+			if (iris.interp == null)
 				continue;
-			Iris.instances.get(key).destroy();
+			iris.destroy();
 		}
+
+		Iris.instances.clear();
+		Iris.instances = new StringMap<Iris>();
 	}
 }
