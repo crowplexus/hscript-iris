@@ -3,7 +3,7 @@
     "description": "a HScript Loader, built for simplicity and inclusion of missing features.",
     "classPath": "",
     "version": "1.1.0",
-    "releasenote": "Improved Imports, Improved Error Handling, Enum Support, Typedef Support",
+    "releasenote": "Improved Imports, Improved Error Handling, Enum Support, Typedef Support, and much more",
     "license": "MIT",
 
     "url": "https://github.com/crowplexus/hscript-iris",
