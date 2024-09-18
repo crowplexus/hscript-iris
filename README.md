@@ -10,7 +10,6 @@ Brought to you by:
 
 - [Crow](https://github.com/crowplexus)
 - [Ne_Eo](https://github.com/NeeEoo)
-- TahirKarabekiroglu
 
 # INSTALLATION
 

@@ -2,7 +2,6 @@ package crowplexus.hscript;
 
 /**
  * Fixes For Loop integer iterators.
- * @author TahirKarabekiroglu
 **/
 @:keepSub
 @:access(crowplexus.hscript.Interp)
