@@ -106,7 +106,7 @@ class Iris {
 		Sys.println((posPrefix + ": " + out).stripColor());
 		#else
 		// Since non-sys targets lack printLn, a simple trace should work
-		trace(posPrefix + ": " + out);
+		trace((posPrefix + ": " + out).stripColor());
 		#end
 	}
 
