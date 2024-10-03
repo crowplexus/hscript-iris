@@ -25,7 +25,7 @@ package crowplexus.hscript;
 import crowplexus.hscript.Expr;
 
 class Tools {
-	public static function iter(e: Expr, f: Expr->Void) {
+	public static function iter(e: Expr, f: Expr->Void): Void {
 		switch (expr(e)) {
 			case EConst(_), EIdent(_):
 			case EVar(_, _, e, _):
@@ -108,7 +108,7 @@ class Tools {
 		}
 	}
 
-	public static function map(e: Expr, f: Expr->Expr) {
+	public static function map(e: Expr, f: Expr->Expr): Expr {
 		var edef = switch (expr(e)) {
 			case EConst(_), EIdent(_), EBreak, EContinue: expr(e);
 			case EVar(n, t, e, c): EVar(n, t, if (e != null) f(e) else null, c);
@@ -146,7 +146,7 @@ class Tools {
 		return #if hscriptPos e.e #else e #end;
 	}
 
-	public static inline function mk(e: ExprDef, p: Expr) {
+	public static inline function mk(e: ExprDef, p: Expr): Expr {
 		#if hscriptPos
 		return {
 			e: e,

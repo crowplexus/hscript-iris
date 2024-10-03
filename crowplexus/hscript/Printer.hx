@@ -32,24 +32,24 @@ class Printer {
 
 	public function new() {}
 
-	public function exprToString(e: Expr) {
+	public function exprToString(e: Expr): String {
 		buf = new StringBuf();
 		tabs = "";
 		expr(e);
 		return buf.toString();
 	}
 
-	public function typeToString(t: CType) {
+	public function typeToString(t: CType): String {
 		buf = new StringBuf();
 		tabs = "";
 		type(t);
 		return buf.toString();
 	}
 
-	inline function add<T>(s: T)
+	inline function add<T>(s: T): Void
 		buf.add(s);
 
-	public function typePath(tp: TypePath) {
+	public function typePath(tp: TypePath): Void {
 		add(tp.pack.join("."));
 		if (tp.pack.length > 0)
 			add(".");
@@ -69,7 +69,7 @@ class Printer {
 		}
 	}
 
-	function type(t: CType) {
+	function type(t: CType): Void {
 		switch (t) {
 			case CTOpt(t):
 				add('?');
@@ -147,21 +147,21 @@ class Printer {
 		}
 	}
 
-	function addType(t: CType) {
+	function addType(t: CType): Void {
 		if (t != null) {
 			add(" : ");
 			type(t);
 		}
 	}
 
-	function addArgument(a: Argument) {
+	function addArgument(a: Argument): Void {
 		if (a.opt)
 			add("?");
 		add(a.name);
 		addType(a.t);
 	}
 
-	function expr(e: Expr) {
+	function expr(e: Expr): Void {
 		if (e == null) {
 			add("??NULL??");
 			return;
@@ -466,19 +466,19 @@ class Printer {
 		}
 	}
 
-	inline function incrementIndent() {
+	inline function incrementIndent(): Void {
 		tabs += indent;
 	}
 
-	inline function decrementIndent() {
+	inline function decrementIndent(): Void {
 		tabs = tabs.substr(indent.length);
 	}
 
-	public static function toString(e: Expr) {
+	public static function toString(e: Expr): String {
 		return new Printer().exprToString(e);
 	}
 
-	public static function errorToString(e: Expr.Error, showPos: Bool = true) {
+	public static function errorToString(e: Expr.Error, showPos: Bool = true): String {
 		var message = switch (#if hscriptPos e.e #else e #end) {
 			case EInvalidChar(c): "Invalid character: '" + (StringTools.isEof(c) ? "EOF" : String.fromCharCode(c)) + "' (" + c + ")";
 			case EUnexpected(s): "Unexpected token: \"" + s + "\"";
