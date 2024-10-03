@@ -262,7 +262,7 @@ class Interp {
 							error(ECustom("Cannot reassign final, for constant expression -> " + id));
 					}
 				}
-				if (l == null) {
+				if (l != null) {
 					if (prefix) {
 						v += delta;
 						setTo(v);
