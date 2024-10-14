@@ -278,8 +278,8 @@ class Printer {
 				add(" while ( ");
 				expr(cond);
 				add(" )");
-			case EFor(v, it, e):
-				add("for( " + v + " in ");
+			case EFor(i, v, it, e):
+				add("for( " + (v == null ? i : '$i => $v') + " in ");
 				expr(it);
 				add(" ) ");
 				expr(e);
@@ -484,8 +484,10 @@ class Printer {
 			case EUnexpected(s): "Unexpected token: \"" + s + "\"";
 			case EUnterminatedString: "Unterminated string";
 			case EUnterminatedComment: "Unterminated comment";
+			case EEmptyExpression: "Expression cannot be empty";
 			case EInvalidPreprocessor(str): "Invalid preprocessor (" + str + ")";
 			case EUnknownVariable(v): "Unknown variable: " + v;
+			case EInvalidKVIterator(v): "Invalid key-value iterator: " + v;
 			case EInvalidIterator(v): "Invalid iterator: " + v;
 			case EInvalidOp(op): "Invalid operator: " + op;
 			case EInvalidAccess(f): "Invalid access to field " + f;
