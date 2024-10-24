@@ -810,6 +810,7 @@ class Interp {
 			error(EInvalidIterator(v));
 		return v;
 	}
+
 	function makeKVIterator(v: Dynamic): Null<KeyValueIterator<Dynamic, Dynamic>> {
 		#if ((flash && !flash9) || (php && !php7 && haxe_ver < '4.0.0'))
 		if (v.keyValueIterator != null) {
@@ -836,7 +837,7 @@ class Interp {
 	function forLoop(n, v, itExpr, e) {
 		var old = declared.length;
 		declared.push({n: n, old: locals.get(n)});
-		var keyValue:Bool = false;
+		var keyValue: Bool = false;
 		if (v != null) {
 			keyValue = true;
 			declared.push({n: v, old: locals.get(v)});
@@ -848,7 +849,7 @@ class Interp {
 			if (keyValue) {
 				var next = _itNext();
 				if (next.key == null || next.value == null) {
-					var nulled:String = (next.key == null ? 'key' : 'value');
+					var nulled: String = (next.key == null ? 'key' : 'value');
 					error(ECustom('${Std.isOfType(next, Int) ? 'Int' : Type.getClassName(Type.getClass(next))} has no field $nulled'));
 				}
 				locals.set(n, {r: next.key, const: false});

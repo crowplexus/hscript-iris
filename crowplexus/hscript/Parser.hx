@@ -142,7 +142,20 @@ class Parser {
 			["&&"],
 			["||"],
 			[
-				"=", "+=", "-=", "*=", "/=", "%=", "??" + "=", "<<=", ">>=", ">>>=", "|=", "&=", "^=", "=>"
+				"=",
+				"+=",
+				"-=",
+				"*=",
+				"/=",
+				"%=",
+				"??" + "=",
+				"<<=",
+				">>=",
+				">>>=",
+				"|=",
+				"&=",
+				"^=",
+				"=>"
 			],
 			["->"]
 		];
@@ -388,25 +401,27 @@ class Parser {
 		return parseExprNext(mk(EObject(fl), p1));
 	}
 
-	function interpolateString(s:String) {
+	function interpolateString(s: String) {
 		var exprs = [];
-		var dollarPos:Int = s.indexOf('$');
+		var dollarPos: Int = s.indexOf('$');
 		while (dollarPos > -1) {
-			var pos:Int = dollarPos;
-			var pre:String = s.substr(0, pos);
-			var next:String = s.charAt(++ pos);
+			var pos: Int = dollarPos;
+			var pre: String = s.substr(0, pos);
+			var next: String = s.charAt(++pos);
 			if (next == '{') {
-				if (pre != '') exprs.push(mk(EConst(CString(pre))));
-				var exprStr:String = '';
-				var depth:Int = 1;
+				if (pre != '')
+					exprs.push(mk(EConst(CString(pre))));
+				var exprStr: String = '';
+				var depth: Int = 1;
 				while (true) {
-					next = s.charAt(++ pos);
+					next = s.charAt(++pos);
 					if (next == '{') {
-						depth ++;
+						depth++;
 					} else if (next == '}') {
-						depth --;
+						depth--;
 					}
-					if (depth < 1) break;
+					if (depth < 1)
+						break;
 					if (pos >= s.length) {
 						error(EUnterminatedString, pos, pos);
 					}
@@ -423,19 +438,25 @@ class Parser {
 				input = prevInput;
 				char = prevChar;
 				exprs.push(expr);
-				pos ++;
+				pos++;
 			} else if (next == '_' || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z')) {
-				if (pre != '') exprs.push(mk(EConst(CString(pre))));
-				var ident:String = '';
+				if (pre != '')
+					exprs.push(mk(EConst(CString(pre))));
+				var ident: String = '';
 				while (next == '_' || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z') || (next >= '0' && next <= '9')) {
 					ident += next;
-					next = s.charAt(++ pos);
+					next = s.charAt(++pos);
 				}
 				exprs.push(mk(EIdent(ident)));
 			} else if (next == '$') {
+				var secondToNext: String = s.charAt(pos);
+				if (secondToNext == "$") { // if its another dollar, skip...
+					s = pre + s.substr(pos, pos + 1); // remove $ ahead of the current one
+					break;
+				}
 				exprs.push(mk(EConst(CString(pre + '$'))));
 			}
-			s = s.substr(pos ++);
+			s = s.substr(pos++);
 			dollarPos = s.indexOf('$');
 		}
 		if (exprs.length == 0) {
@@ -444,13 +465,15 @@ class Parser {
 			exprs.push(mk(EConst(CString(s))));
 			var expr = exprs[0];
 			for (i => nextExpr in exprs) {
-				if (i == 0) continue;
+				if (i == 0)
+					continue;
 				// NOTE: probably look into const optimization if possible, cause i really couldnt figure it out
 				expr = mk(EBinop('+', expr, nextExpr));
 			}
 			return expr;
 		}
 	}
+
 	function parseExpr() {
 		var tk = token();
 		#if hscriptPos
@@ -466,8 +489,7 @@ class Parser {
 				switch (c) {
 					default:
 					case CString(s, interp):
-						if (interp)
-							return parseExprNext(interpolateString(s));
+						if (interp) return parseExprNext(interpolateString(s));
 				}
 				return parseExprNext(mk(EConst(c)));
 			case TPOpen:
@@ -1624,7 +1646,7 @@ class Parser {
 				var next = readChar();
 				if (next == 123) {
 					b.addChar(next);
-					var depth:Int = 0;
+					var depth: Int = 0;
 					while (true) {
 						next = readChar();
 						if (StringTools.isEof(next)) {
@@ -1632,7 +1654,7 @@ class Parser {
 						}
 						b.addChar(next);
 						if (next == "'".code) {
-							var nextStr:String = readString("'".code, true);
+							var nextStr: String = readString("'".code, true);
 							for (char in nextStr) {
 								b.addChar(char);
 							}
@@ -1641,13 +1663,13 @@ class Parser {
 							b.addChar(next);
 						}
 						if (next == 125) {
-							depth --;
+							depth--;
 							if (depth < 0)
 								break;
 						}
 					}
 				} else {
-					readPos --;
+					readPos--;
 				}
 			} else {
 				if (c == 10)

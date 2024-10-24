@@ -423,8 +423,9 @@ class Bytes {
 				doEncodeExprType(EDoWhile);
 				doEncode(cond);
 				doEncode(e);
-			case EFor(v, it, e):
+			case EFor(i, v, it, e):
 				doEncodeExprType(EFor);
+				doEncodeString(i);
 				doEncodeString(v);
 				doEncode(it);
 				doEncode(e);
@@ -605,9 +606,10 @@ class Bytes {
 				var cond = doDecode();
 				EDoWhile(cond, doDecode());
 			case EFor:
+				var i = doDecodeString();
 				var v = doDecodeString();
 				var it = doDecode();
-				EFor(v, it, doDecode());
+				EFor(i, v, it, doDecode());
 			case EBreak:
 				EBreak;
 			case EContinue:

@@ -56,6 +56,7 @@ class Expr {
 enum ExprDef
 #else
 typedef ExprDef = Expr;
+
 enum Expr
 #end
 {
@@ -91,6 +92,7 @@ enum Expr
 	EEnum(name:String, fields:Array<EnumType>);
 	EDirectValue(value:Dynamic);
 }
+
 typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
 typedef Metadata = Array<{name: String, params: Array<Expr>}>;
 
@@ -158,7 +160,6 @@ enum ErrorDef
 #else
 enum Error
 #end
-
 {
 	EInvalidChar(c:Int);
 	EUnexpected(s:String);
@@ -173,6 +174,7 @@ enum Error
 	ECustom(msg:String);
 	EEmptyExpression;
 }
+
 enum ModuleDecl {
 	DPackage(path: Array<String>);
 	DImport(path: Array<String>, ?everything: Bool, ?as: String);
