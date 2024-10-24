@@ -262,12 +262,11 @@ class Interp {
 							error(ECustom("Cannot reassign final, for constant expression -> " + id));
 					}
 				}
-				if (l == null) {
-					if (prefix) {
-						v += delta;
-						setTo(v);
-					} else
-						setTo(v + delta);
+				if (prefix) {
+					v += delta;
+					setTo(v);
+				} else {
+					setTo(v + delta);
 				}
 				return v;
 			case EField(e, f, s):
@@ -494,8 +493,8 @@ class Interp {
 			case EDoWhile(econd, e):
 				doWhileLoop(econd, e);
 				return null;
-			case EFor(v, it, e):
-				forLoop(v, it, e);
+			case EFor(i, v, it, e):
+				forLoop(i, v, it, e);
 				return null;
 			case EBreak:
 				throw SBreak;
@@ -812,14 +811,52 @@ class Interp {
 		return v;
 	}
 
-	function forLoop(n, it, e) {
+	function makeKVIterator(v: Dynamic): Null<KeyValueIterator<Dynamic, Dynamic>> {
+		#if ((flash && !flash9) || (php && !php7 && haxe_ver < '4.0.0'))
+		if (v.keyValueIterator != null) {
+			return v.keyValueIterator();
+		} else {
+			if (v.iterator != null) {
+				v = v.iterator();
+			}
+		}
+		#else
+		try {
+			return v.keyValueIterator();
+		} catch (e:Dynamic) {
+			try {
+				v = v.iterator();
+			} catch (e:Dynamic) {};
+		};
+		#end
+		if (v.hasNext == null || v.next == null)
+			error(EInvalidKVIterator(v));
+		return v;
+	}
+
+	function forLoop(n, v, itExpr, e) {
 		var old = declared.length;
 		declared.push({n: n, old: locals.get(n)});
-		var it = makeIterator(expr(it));
+		var keyValue: Bool = false;
+		if (v != null) {
+			keyValue = true;
+			declared.push({n: v, old: locals.get(v)});
+		}
+		var it = (keyValue ? makeKVIterator : makeIterator)(expr(itExpr));
 		var _itHasNext = it.hasNext;
 		var _itNext = it.next;
 		while (_itHasNext()) {
-			locals.set(n, {r: _itNext(), const: false});
+			if (keyValue) {
+				var next = _itNext();
+				if (next.key == null || next.value == null) {
+					var nulled: String = (next.key == null ? 'key' : 'value');
+					error(ECustom('${Std.isOfType(next, Int) ? 'Int' : Type.getClassName(Type.getClass(next))} has no field $nulled'));
+				}
+				locals.set(n, {r: next.key, const: false});
+				locals.set(v, {r: next.value, const: false});
+			} else {
+				locals.set(n, {r: _itNext(), const: false});
+			}
 			try {
 				expr(e);
 			} catch (err:Stop) {

@@ -142,7 +142,20 @@ class Parser {
 			["&&"],
 			["||"],
 			[
-				"=", "+=", "-=", "*=", "/=", "%=", "??" + "=", "<<=", ">>=", ">>>=", "|=", "&=", "^=", "=>"
+				"=",
+				"+=",
+				"-=",
+				"*=",
+				"/=",
+				"%=",
+				"??" + "=",
+				"<<=",
+				">>=",
+				">>>=",
+				"|=",
+				"&=",
+				"^=",
+				"=>"
 			],
 			["->"]
 		];
@@ -321,7 +334,7 @@ class Parser {
 			case EUnop(_, prefix, e): !prefix && isBlock(e);
 			case EWhile(_, e): isBlock(e);
 			case EDoWhile(_, e): isBlock(e);
-			case EFor(_, _, e): isBlock(e);
+			case EFor(_, _, _, e): isBlock(e);
 			case EReturn(e): e != null && isBlock(e);
 			case ETry(_, _, _, e): isBlock(e);
 			case EMeta(_, _, e): isBlock(e);
@@ -365,7 +378,7 @@ class Parser {
 					if (!allowJSON)
 						unexpected(tk);
 					switch (c) {
-						case CString(s): id = s;
+						case CString(s, _): id = s;
 						default: unexpected(tk);
 					}
 				case TBrClose:
@@ -388,6 +401,79 @@ class Parser {
 		return parseExprNext(mk(EObject(fl), p1));
 	}
 
+	function interpolateString(s: String) {
+		var exprs = [];
+		var dollarPos: Int = s.indexOf('$');
+		while (dollarPos > -1) {
+			var pos: Int = dollarPos;
+			var pre: String = s.substr(0, pos);
+			var next: String = s.charAt(++pos);
+			if (next == '{') {
+				if (pre != '')
+					exprs.push(mk(EConst(CString(pre))));
+				var exprStr: String = '';
+				var depth: Int = 1;
+				while (true) {
+					next = s.charAt(++pos);
+					if (next == '{') {
+						depth++;
+					} else if (next == '}') {
+						depth--;
+					}
+					if (depth < 1)
+						break;
+					if (pos >= s.length) {
+						error(EUnterminatedString, pos, pos);
+					}
+					exprStr += next;
+				}
+				if (exprStr.trim() == '') {
+					error(EEmptyExpression, pos, pos);
+				}
+				var prevChar = char;
+				var prevInput = input;
+				var prevReadPos = readPos; // a bit stupid innit???
+				var expr = parseString('($exprStr)' #if hscriptPos, origin #end);
+				readPos = prevReadPos; // rolling back parser state because otherwise we get problems...
+				input = prevInput;
+				char = prevChar;
+				exprs.push(expr);
+				pos++;
+			} else if (next == '_' || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z')) {
+				if (pre != '')
+					exprs.push(mk(EConst(CString(pre))));
+				var ident: String = '';
+				while (next == '_' || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z') || (next >= '0' && next <= '9')) {
+					ident += next;
+					next = s.charAt(++pos);
+				}
+				exprs.push(mk(EIdent(ident)));
+			} else if (next == '$') {
+				var secondToNext: String = s.charAt(pos);
+				if (secondToNext == "$") { // if its another dollar, skip...
+					s = pre + s.substr(pos, pos + 1); // remove $ ahead of the current one
+					break;
+				}
+				exprs.push(mk(EConst(CString(pre + '$'))));
+			}
+			s = s.substr(pos++);
+			dollarPos = s.indexOf('$');
+		}
+		if (exprs.length == 0) {
+			return mk(EConst(CString(s)));
+		} else {
+			exprs.push(mk(EConst(CString(s))));
+			var expr = exprs[0];
+			for (i => nextExpr in exprs) {
+				if (i == 0)
+					continue;
+				// NOTE: probably look into const optimization if possible, cause i really couldnt figure it out
+				expr = mk(EBinop('+', expr, nextExpr));
+			}
+			return expr;
+		}
+	}
+
 	function parseExpr() {
 		var tk = token();
 		#if hscriptPos
@@ -400,6 +486,11 @@ class Parser {
 					e = mk(EIdent(id));
 				return parseExprNext(e);
 			case TConst(c):
+				switch (c) {
+					default:
+					case CString(s, interp):
+						if (interp) return parseExprNext(interpolateString(s));
+				}
 				return parseExprNext(mk(EConst(c)));
 			case TPOpen:
 				tk = token();
@@ -574,8 +665,8 @@ class Parser {
 		if (e == null)
 			return null;
 		var edef = switch (expr(e)) {
-			case EFor(v, it, e2):
-				EFor(v, it, mapCompr(tmp, e2));
+			case EFor(i, v, it, e2):
+				EFor(i, v, it, mapCompr(tmp, e2));
 			case EWhile(cond, e2):
 				EWhile(cond, mapCompr(tmp, e2));
 			case EDoWhile(cond, e2):
@@ -670,12 +761,20 @@ class Parser {
 				mk(EDoWhile(econd, e), p1, pmax(econd));
 			case "for":
 				ensure(TPOpen);
-				var vname = getIdent();
-				ensureToken(TId("in"));
+				var iname = getIdent();
+				var vname = null;
+				var tk = token();
+				switch (tk) {
+					case TOp("=>"):
+						vname = getIdent();
+						ensureToken(TId("in"));
+					case TId("in"):
+					default: unexpected(tk);
+				}
 				var eiter = parseExpr();
 				ensure(TPClose);
 				var e = parseExpr();
-				mk(EFor(vname, eiter, e), p1, pmax(e));
+				mk(EFor(iname, vname, eiter, e), p1, pmax(e));
 			case "break": mk(EBreak);
 			case "continue": mk(EContinue);
 			case "else": unexpected(TId(id));
@@ -1480,7 +1579,7 @@ class Parser {
 		return StringTools.fastCodeAt(input, readPos++);
 	}
 
-	function readString(until) {
+	function readString(until, interpolate: Bool = false) {
 		var c = 0;
 		var b = new StringBuf();
 		var esc = false;
@@ -1540,9 +1639,39 @@ class Parser {
 				}
 			} else if (c == 92)
 				esc = true;
-			else if (c == until)
+			else if (c == until) {
 				break;
-			else {
+			} else if (c == 36 && interpolate) { // brace for impact !!
+				b.addChar(c);
+				var next = readChar();
+				if (next == 123) {
+					b.addChar(next);
+					var depth: Int = 0;
+					while (true) {
+						next = readChar();
+						if (StringTools.isEof(next)) {
+							error(EUnterminatedString, p1, p1);
+						}
+						b.addChar(next);
+						if (next == "'".code) {
+							var nextStr: String = readString("'".code, true);
+							for (char in nextStr) {
+								b.addChar(char);
+							}
+							b.addChar("'".code);
+							next = readChar();
+							b.addChar(next);
+						}
+						if (next == 125) {
+							depth--;
+							if (depth < 0)
+								break;
+						}
+					}
+				} else {
+					readPos--;
+				}
+			} else {
 				if (c == 10)
 					line++;
 				b.addChar(c);
@@ -1758,8 +1887,10 @@ class Parser {
 					return TBkOpen;
 				case "]".code:
 					return TBkClose;
-				case "'".code, '"'.code:
-					return TConst(CString(readString(char)));
+				case "'".code:
+					return TConst(CString(readString(char, true), true));
+				case '"'.code:
+					return TConst(CString(readString(char), false));
 				case "?".code:
 					char = readChar();
 					if (char == ".".code)
@@ -1986,7 +2117,7 @@ class Parser {
 		return switch (c) {
 			case CInt(v): Std.string(v);
 			case CFloat(f): Std.string(f);
-			case CString(s): s; // TODO : escape + quote
+			case CString(s, _): s; // TODO : escape + quote
 			#if !haxe3
 			case CInt32(v): Std.string(v);
 			#end

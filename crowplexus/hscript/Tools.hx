@@ -25,7 +25,7 @@ package crowplexus.hscript;
 import crowplexus.hscript.Expr;
 
 class Tools {
-	public static function iter(e: Expr, f: Expr->Void) {
+	public static function iter(e: Expr, f: Expr->Void): Void {
 		switch (expr(e)) {
 			case EConst(_), EIdent(_):
 			case EVar(_, _, e, _):
@@ -58,7 +58,7 @@ class Tools {
 			case EDoWhile(c, e):
 				f(c);
 				f(e);
-			case EFor(_, it, e):
+			case EFor(_, _, it, e):
 				f(it);
 				f(e);
 			case EBreak, EContinue:
@@ -108,7 +108,7 @@ class Tools {
 		}
 	}
 
-	public static function map(e: Expr, f: Expr->Expr) {
+	public static function map(e: Expr, f: Expr->Expr): Expr {
 		var edef = switch (expr(e)) {
 			case EConst(_), EIdent(_), EBreak, EContinue: expr(e);
 			case EVar(n, t, e, c): EVar(n, t, if (e != null) f(e) else null, c);
@@ -121,7 +121,7 @@ class Tools {
 			case EIf(c, e1, e2): EIf(f(c), f(e1), if (e2 != null) f(e2) else null);
 			case EWhile(c, e): EWhile(f(c), f(e));
 			case EDoWhile(c, e): EDoWhile(f(c), f(e));
-			case EFor(v, it, e): EFor(v, f(it), f(e));
+			case EFor(i, v, it, e): EFor(i, v, f(it), f(e));
 			case EFunction(args, e, name, t): EFunction(args, f(e), name, t);
 			case EReturn(e): EReturn(if (e != null) f(e) else null);
 			case EArray(e, i): EArray(f(e), f(i));
@@ -146,7 +146,7 @@ class Tools {
 		return #if hscriptPos e.e #else e #end;
 	}
 
-	public static inline function mk(e: ExprDef, p: Expr) {
+	public static inline function mk(e: ExprDef, p: Expr): Expr {
 		#if hscriptPos
 		return {
 			e: e,

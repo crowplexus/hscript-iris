@@ -27,7 +27,7 @@ import crowplexus.hscript.Types.ByteUInt;
 enum Const {
 	CInt(v: Int);
 	CFloat(f: Float);
-	CString(s: String);
+	CString(s: String, ?interp: Bool);
 	#if !haxe3
 	CInt32(v:haxe.Int32);
 	#end
@@ -56,6 +56,7 @@ class Expr {
 enum ExprDef
 #else
 typedef ExprDef = Expr;
+
 enum Expr
 #end
 {
@@ -72,7 +73,7 @@ enum Expr
 	ECall(e:Expr, params:Array<Expr>);
 	EIf(cond:Expr, e1:Expr, ?e2:Expr);
 	EWhile(cond:Expr, e:Expr);
-	EFor(v:String, it:Expr, e:Expr);
+	EFor(i:String, v:Null<String>, it:Expr, e:Expr);
 	EBreak;
 	EContinue;
 	EFunction(args:Array<Argument>, e:Expr, ?name:String, ?ret:CType);
@@ -91,6 +92,7 @@ enum Expr
 	EEnum(name:String, fields:Array<EnumType>);
 	EDirectValue(value:Dynamic);
 }
+
 typedef Argument = {name: String, ?t: CType, ?opt: Bool, ?value: Expr};
 typedef Metadata = Array<{name: String, params: Array<Expr>}>;
 
@@ -158,7 +160,6 @@ enum ErrorDef
 #else
 enum Error
 #end
-
 {
 	EInvalidChar(c:Int);
 	EUnexpected(s:String);
@@ -166,11 +167,14 @@ enum Error
 	EUnterminatedComment;
 	EInvalidPreprocessor(msg:String);
 	EUnknownVariable(v:String);
+	EInvalidKVIterator(v:String);
 	EInvalidIterator(v:String);
 	EInvalidOp(op:String);
 	EInvalidAccess(f:String);
 	ECustom(msg:String);
+	EEmptyExpression;
 }
+
 enum ModuleDecl {
 	DPackage(path: Array<String>);
 	DImport(path: Array<String>, ?everything: Bool, ?as: String);

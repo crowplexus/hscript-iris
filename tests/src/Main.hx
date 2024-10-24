@@ -13,9 +13,10 @@ using StringTools;
 @:access(crowplexus.iris.Iris)
 class Main {
 	static function main() {
-		mainTest();
+		// mainTest();
 		// mainBytes();
 		// testIndenticalNames();
+		testStringInterpolation();
 	}
 
 	/**
@@ -110,6 +111,44 @@ class Main {
 			var tokens = parser.parseString(File.getContent(file));
 			trace(tokens);
 		}
+	}
+
+	static function testStringInterpolation() {
+		function testFile() { // FILE TEST
+			trace('Testing String Interpolation, with a file');
+			var file: String = sys.io.File.getContent("./assets/strings.hx");
+			var script: Iris = new Iris(file, {name: "StringInterpolationTest"});
+			script.call("main", []);
+		}
+		function testPureString() { // STRING TEST
+			trace('...With a pure string');
+			var source: String = "function main() {
+				trace('Program Start!');
+
+				var hello = 'Hello!';
+
+				trace('test 1, basic interpolation: $hello');
+				var tally = {
+					score: 10,
+					hits: 5,
+					misses: 0,
+				};
+				var stats = 'Score:${tally.score}';
+				trace('test 2, bracket interpolation: $stats');
+				stats = 'Score:${tally.score} - Hits:${tally.hits} - Misses:${tally.misses}';
+				trace('test 3, bracket interpolation with multiple strings: $stats');
+
+				trace('test 4, escaped interpolation: $${caw}');
+
+				trace('test 5, nested interpolation: ${'${tally.score}'}');
+			}";
+			var source: Iris = new Iris(source, {name: "StringInterpolationTestSource", autoRun: false});
+			source.execute();
+			source.call("main", []);
+		}
+
+		testFile();
+		// testPureString();
 	}
 }
 
