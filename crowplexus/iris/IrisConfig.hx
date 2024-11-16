@@ -1,18 +1,8 @@
 package crowplexus.iris;
 
-abstract OneOfTwo<T1, T2>(Dynamic) from T1 from T2 to T1 to T2 {}
-
-typedef RawIrisConfig = {
-	var name: String;
-	var ?autoRun: Bool;
-	var ?autoPreset: Bool;
-	var ?localBlocklist: Array<String>;
-};
-
-typedef AutoIrisConfig = OneOfTwo<IrisConfig, RawIrisConfig>;
-
+@:structInit
 class IrisConfig {
-	public var name: String = null;
+	public var name: String;
 	public var autoRun: Bool = true;
 	public var autoPreset: Bool = true;
 	@:unreflective public var localBlocklist: Array<String> = [];
@@ -31,12 +21,5 @@ class IrisConfig {
 		this.autoPreset = autoPreset;
 		if (localBlocklist != null)
 			this.localBlocklist = localBlocklist;
-	}
-
-	public static function from(d: AutoIrisConfig): IrisConfig {
-		if (d != null && Std.isOfType(d, IrisConfig))
-			return d;
-		var d: RawIrisConfig = cast d;
-		return new IrisConfig(d.name, d.autoRun, d.autoPreset, d.localBlocklist);
 	}
 }
