@@ -22,4 +22,12 @@ class IrisConfig {
 		if (localBlocklist != null)
 			this.localBlocklist = localBlocklist;
 	}
+
+	@:deprecated('IrisConfig.from is deprecated! It\'s not needed anymore!')
+	public static function from(d: IrisConfig): IrisConfig {
+		return d;
+	}
 }
+
+@:deprecated('RawIrisConfig is deprecated! Use IrisConfig instead! (IrisConfig supports structInit, only the type needs to be changed)')
+class RawIrisConfig extends IrisConfig {}
