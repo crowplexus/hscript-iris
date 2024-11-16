@@ -190,11 +190,11 @@ class Iris {
 	 * will trace "Hello World!" to the standard output.
 	 * @param scriptCode      the script to be parsed, e.g:
 	 */
-	public function new(scriptCode: String, ?config: AutoIrisConfig): Void {
+	public function new(scriptCode: String, ?config: IrisConfig): Void {
 		if (config == null)
 			config = new IrisConfig("Iris", true, true, []);
 		this.scriptCode = scriptCode;
-		this.config = IrisConfig.from(config);
+		this.config = config;
 		this.config.name = fixScriptName(this.name);
 
 		parser = new Parser();
