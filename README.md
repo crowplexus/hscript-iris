@@ -115,7 +115,7 @@ import crowplexus.iris.IrisConfig;
 class Main {
 	static function main():Void {
 		// reminder that the rules are completely optional.
-		final rules:RawIrisConfig = {name: "My Script", autoRun: false, preset: true};
+		final rules:RawIrisConfig = {name: "My Script", autoRun: false, autoPreset: true};
 		final getText:String->String = #if sys sys.io.File.getContent #elseif openfl openfl.utils.Assets.getText #end;
 		var myScript:Iris = new Iris(getText("assets/scripts/hi.hx"), rules);
 
