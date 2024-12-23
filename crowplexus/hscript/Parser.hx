@@ -100,6 +100,11 @@ class Parser {
 	**/
 	public var resumeErrors: Bool;
 
+	/*
+		package name, set when using "package;" in your script.
+	 */
+	public var packageName: String = null;
+
 	// implementation
 	var input: String;
 	var readPos: Int;
@@ -981,21 +986,28 @@ class Parser {
 				mk(EUsing(path.join(".")));
 			case "package":
 				// ignore package
+				var tk = token();
+				if (tk == TSemicolon) {
+					push(tk);
+					return mk(EIgnore(false));
+				}
+				push(tk);
 				var path = [getIdent()];
 
 				while (true) {
-					var t = token();
-					if (t != TDot) {
-						push(t);
+					tk = token();
+					if (tk != TDot) {
+						push(tk);
 						break;
 					}
-					t = token();
-					switch (t) {
+					tk = token();
+					switch (tk) {
 						case TId(id): path.push(id);
-						default: unexpected(t);
+						default: unexpected(tk);
 					}
 				}
 				// mk(EPackage(path.join(".")));
+				packageName = path.join(".");
 				mk(EIgnore(false));
 			default:
 				null;
@@ -1982,7 +1994,7 @@ class Parser {
 				if (preprocStack.length != 0) {
 					error(EInvalidPreprocessor("Unclosed"), pos, pos);
 				} else {
-					trace("line: " + pos);
+					//  trace("line: " + pos);
 					break;
 				}
 			}

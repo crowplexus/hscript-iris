@@ -1,3 +1,8 @@
+# 1.1.2
+
+- Fixed `package;` (unnamed) crashing the script.
+- Script Package now gets saved in the parser.
+
 # 1.1.1
 
 - Added `package path;` syntax

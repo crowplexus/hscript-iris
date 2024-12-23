@@ -236,6 +236,7 @@ class Iris {
 			expr = parse();
 
 		Iris.instances.set(this.name, this);
+		this.config.packageName = parser.packageName;
 		return interp.execute(expr);
 	}
 

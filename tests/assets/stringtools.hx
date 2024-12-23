@@ -1,4 +1,4 @@
-package test.world;
+package tests;
 
 // using test.world.Meow;
 function main() {
