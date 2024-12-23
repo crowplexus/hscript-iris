@@ -1,3 +1,17 @@
+# 1.1.3
+
+- Better `using`s
+	- You can now call the `using` statement with most classes
+	- You can make your project's classes usable by implementing an interface
+		```haxe
+		class CoolUtil implements crowplexus.iris.IrisUsingClass {}
+		```
+	- Customizable using parsing by using @:irisUsableEntry(forceAny, onlyBasic), arguments are optional
+	- You can also prevent a function from being used by adding `@:irisNoUse` over the function.
+	- `@:noUsing` will also work for that same purpose, but careful, this also prevents you from using it in source.
+	
+- Classes imported like `flixel.text.FlxText.FlxTextBorderStyle` are now supported.
+
 # 1.1.2
 
 - Fixed `package;` (unnamed) crashing the script.

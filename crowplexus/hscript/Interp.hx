@@ -22,12 +22,14 @@
 
 package crowplexus.hscript;
 
-import crowplexus.iris.Iris;
-import crowplexus.hscript.proxy.ProxyType;
-import haxe.PosInfos;
+import Type.ValueType;
 import crowplexus.hscript.Expr;
 import crowplexus.hscript.Tools;
+import crowplexus.iris.Iris;
+import crowplexus.iris.IrisUsingClass;
+import crowplexus.iris.utils.UsingEntry;
 import haxe.Constraints.IMap;
+import haxe.PosInfos;
 
 private enum Stop {
 	SBreak;
@@ -58,7 +60,7 @@ class Interp {
 	public var variables: Hash<Dynamic>;
 	public var imports: Hash<Dynamic>;
 
-	var locals: Hash<{r: Dynamic}>;
+	var locals: Hash<LocalVar>;
 	var binops: Hash<Expr->Expr->Dynamic>;
 	#end
 
@@ -799,11 +801,6 @@ class Interp {
 		restore(old);
 	}
 
-	static function isIterable(v: Dynamic): Bool {
-		// TODO: test for php and lua, they might have issues with this check
-		return v != null && v.iterator != null;
-	}
-
 	function makeIterator(v: Dynamic): Iterator<Dynamic> {
 		#if ((flash && !flash9) || (php && !php7 && haxe_ver < '4.0.0'))
 		if (v.iterator != null)
@@ -846,11 +843,11 @@ class Interp {
 	}
 
 	inline function getMapValue(map: Dynamic, key: Dynamic): Dynamic {
-		return cast(map, haxe.Constraints.IMap<Dynamic, Dynamic>).get(key);
+		return cast(map, IMap<Dynamic, Dynamic>).get(key);
 	}
 
 	inline function setMapValue(map: Dynamic, key: Dynamic, value: Dynamic): Void {
-		cast(map, haxe.Constraints.IMap<Dynamic, Dynamic>).set(key, value);
+		cast(map, IMap<Dynamic, Dynamic>).set(key, value);
 	}
 
 	function get(o: Dynamic, f: String): Dynamic {
@@ -877,59 +874,91 @@ class Interp {
 		return v;
 	}
 
-	static var allUsings: Array<UsingEntry> = [
-		new UsingEntry("StringTools", function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
-			if (f == "isEof") // has @:noUsing
-				return null;
-			switch (Type.typeof(o)) {
-				case(TFloat | TInt) if (f == "hex"):
-					return StringTools.hex(o, args[0]);
-				case TClass(String):
-					if (Reflect.hasField(StringTools, f)) {
-						var field = Reflect.field(StringTools, f);
-						if (Reflect.isFunction(field)) {
-							return Reflect.callMethod(StringTools, field, [o].concat(args));
-						}
-					}
-				default:
-			}
-			return null;
-		}),
-		new UsingEntry("Lambda", function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
-			if (isIterable(o)) {
-				// TODO: Check if the values are Iterable<T>
-				if (Reflect.hasField(Lambda, f)) {
-					var field = Reflect.field(Lambda, f);
-					if (Reflect.isFunction(field)) {
-						return Reflect.callMethod(Lambda, field, [o].concat(args));
-					}
-				}
-			}
-			return null;
-		}),
-	];
-
+	/**
+	 * Meant for people to add their own usings.
+	**/
 	function registerUsingLocal(name: String, call: UsingCall): UsingEntry {
 		var entry = new UsingEntry(name, call);
 		usings.push(entry);
 		return entry;
 	}
 
-	function registerUsingGlobal(name: String, call: UsingCall): UsingEntry {
-		var entry = new UsingEntry(name, call);
-		allUsings.push(entry);
-		return entry;
-	}
-
 	function useUsing(name: String): Void {
-		// turning off formatter because wtf formatter
-		for (us in allUsings) {
+		for (us in Iris.registeredUsingEntries) {
 			if (us.name == name) {
-				usings.push(us);
+				if (usings.indexOf(us) == -1)
+					usings.push(us);
 				return;
 			}
 		}
 
+		var cls = Tools.getClass(name);
+		if (cls != null) {
+			var fieldName = '__irisUsing_' + StringTools.replace(name, ".", "_");
+			if (Reflect.hasField(cls, fieldName)) {
+				var fields = Reflect.field(cls, fieldName);
+				if (fields == null)
+					return;
+
+				var entry = new UsingEntry(name, function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+					if (!fields.exists(f))
+						return null;
+					var type: ValueType = Type.typeof(o);
+					var valueType: ValueType = fields.get(f);
+
+					// If we figure out a better way to get the types as the real ValueType, we can use this instead
+					// if (Type.enumEq(valueType, type))
+					//	return Reflect.callMethod(cls, Reflect.field(cls, f), [o].concat(args));
+
+					var canCall = valueType == null ? true : switch (valueType) {
+						case TEnum(null):
+							type.match(TEnum(_));
+						case TClass(null):
+							type.match(TClass(_));
+						case TClass(IMap): // if we don't check maps like this, it just doesn't work
+							type.match(TClass(IMap) | TClass(haxe.ds.ObjectMap) | TClass(haxe.ds.StringMap) | TClass(haxe.ds.IntMap) | TClass(haxe.ds.EnumValueMap));
+						default:
+							Type.enumEq(type, valueType);
+					}
+
+					return canCall ? Reflect.callMethod(cls, Reflect.field(cls, f), [o].concat(args)) : null;
+				});
+
+				#if IRIS_DEBUG
+				trace("Registered macro based using entry for " + name);
+				#end
+
+				Iris.registeredUsingEntries.push(entry);
+				usings.push(entry);
+				return;
+			}
+
+			// Use reflection to generate the using entry
+			var entry = new UsingEntry(name, function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+				if (!Reflect.hasField(cls, f))
+					return null;
+				var field = Reflect.field(cls, f);
+				if (!Reflect.isFunction(field))
+					return null;
+
+				// invalid if the function has no arguments
+				var totalArgs = Tools.argCount(field);
+				if (totalArgs == 0)
+					return null;
+
+				// todo make it check if the first argument is the correct type
+
+				return Reflect.callMethod(cls, field, [o].concat(args));
+			});
+
+			#if IRIS_DEBUG
+			trace("Registered reflection based using entry for " + name);
+			#end
+
+			Iris.registeredUsingEntries.push(entry);
+			usings.push(entry);
+			return;
+		}
 		warn(ECustom("Unknown using class " + name));
 	}
 
@@ -965,17 +994,5 @@ class Interp {
 		if (c == null)
 			c = resolve(cl);
 		return Type.createInstance(c, args);
-	}
-}
-
-typedef UsingCall = (o: Dynamic, f: String, args: Array<Dynamic>) -> Dynamic;
-
-class UsingEntry {
-	public var name: String;
-	public var call: UsingCall;
-
-	public function new(name: String, call: UsingCall) {
-		this.name = name;
-		this.call = call;
 	}
 }

@@ -23,10 +23,10 @@
 package crowplexus.hscript;
 
 import crowplexus.hscript.Expr.Error;
+import haxe.macro.Expr;
 #if hscriptPos
 import crowplexus.hscript.Expr.ErrorDef;
 #end
-import haxe.macro.Expr;
 
 class Macro {
 	var p: Position;

@@ -17,7 +17,7 @@ class Main {
 		// mainTest();
 		// mainBytes();
 		// testIndenticalNames();
-		testStringTools();
+		testUsing();
 	}
 
 	/**
@@ -115,11 +115,11 @@ class Main {
 	}
 
 	/**
-	 * Test for HScript StringTools (using StringTools;)
+	 * Test for HScript Using keyword
 	 */
-	static function testStringTools() {
-		var myScript: Iris = new Iris(Resource.getString("assets/stringtools.hx"), {
-			name: "stringtools",
+	static function testUsing() {
+		var myScript: Iris = new Iris(Resource.getString("assets/using.hx"), {
+			name: "using",
 			autoRun: false
 		});
 		myScript.execute();
