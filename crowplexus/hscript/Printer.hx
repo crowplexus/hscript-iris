@@ -463,6 +463,11 @@ class Printer {
 				add("}");
 			case EDirectValue(value):
 				add("<Internal Value " + value + ">");
+			case EUsing(name):
+				add("using");
+				if (name != null)
+					add(" " + name);
+				add(";\n");
 		}
 	}
 

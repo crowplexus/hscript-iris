@@ -100,6 +100,11 @@ class Parser {
 	**/
 	public var resumeErrors: Bool;
 
+	/*
+		package name, set when using "package;" in your script.
+	 */
+	public var packageName: String = null;
+
 	// implementation
 	var input: String;
 	var readPos: Int;
@@ -1048,6 +1053,48 @@ class Parser {
 						error(ECustom("Typedef, unknown type " + t), tokenMin, tokenMax);
 						null;
 				}
+
+			case "using":
+				var path = [getIdent()];
+
+				while (true) {
+					var t = token();
+					if (t != TDot) {
+						push(t);
+						break;
+					}
+					t = token();
+					switch (t) {
+						case TId(id): path.push(id);
+						default: unexpected(t);
+					}
+				}
+				mk(EUsing(path.join(".")));
+			case "package":
+				// ignore package
+				var tk = token();
+				if (tk == TSemicolon) {
+					push(tk);
+					return mk(EIgnore(false));
+				}
+				push(tk);
+				var path = [getIdent()];
+
+				while (true) {
+					tk = token();
+					if (tk != TDot) {
+						push(tk);
+						break;
+					}
+					tk = token();
+					switch (tk) {
+						case TId(id): path.push(id);
+						default: unexpected(tk);
+					}
+				}
+				// mk(EPackage(path.join(".")));
+				packageName = path.join(".");
+				mk(EIgnore(false));
 			default:
 				null;
 		}
@@ -1986,7 +2033,7 @@ class Parser {
 		return preprocesorValues.get(id);
 	}
 
-	var preprocStack: Array<Bool>;
+	var preprocStack: Array<PreprocessStackValue>;
 
 	function parsePreproCond() {
 		var tk = token();
@@ -2026,20 +2073,20 @@ class Parser {
 			case "if":
 				var e = parsePreproCond();
 				if (evalPreproCond(e)) {
-					preprocStack.push(true);
+					preprocStack.push({r: true});
 					return token();
 				}
-				preprocStack.push(false);
+				preprocStack.push({r: false});
 				skipTokens();
 				return token();
 			case "else", "elseif" if (preprocStack.length > 0):
-				if (preprocStack[preprocStack.length - 1]) {
-					preprocStack[preprocStack.length - 1] = false;
+				if (preprocStack[preprocStack.length - 1].r) {
+					preprocStack[preprocStack.length - 1].r = false;
 					skipTokens();
 					return token();
 				} else if (id == "else") {
 					preprocStack.pop();
-					preprocStack.push(true);
+					preprocStack.push({r: true});
 					return token();
 				} else {
 					// elseif
@@ -2060,8 +2107,15 @@ class Parser {
 		var pos = readPos;
 		while (true) {
 			var tk = token();
-			if (tk == TEof)
-				error(EInvalidPreprocessor("Unclosed"), pos, pos);
+			if (tk == TEof) {
+				// @see https://github.com/CodenameCrew/hscript-improved/pull/5/
+				if (preprocStack.length != 0) {
+					error(EInvalidPreprocessor("Unclosed"), pos, pos);
+				} else {
+					//  trace("line: " + pos);
+					break;
+				}
+			}
 			if (preprocStack[spos] != obj) {
 				push(tk);
 				break;
@@ -2148,6 +2202,7 @@ class Parser {
 	}
 }
 
+@:structInit
 final class PreprocessStackValue {
 	public var r: Bool;
 

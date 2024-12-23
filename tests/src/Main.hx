@@ -7,6 +7,7 @@ import crowplexus.iris.Iris;
 import crowplexus.hscript.Parser;
 import crowplexus.hscript.Printer;
 import crowplexus.hscript.Bytes;
+import haxe.Resource;
 
 using StringTools;
 
@@ -16,7 +17,8 @@ class Main {
 		// mainTest();
 		// mainBytes();
 		// testIndenticalNames();
-		testStringInterpolation();
+		// testStringInterpolation();
+		testStringTools();
 	}
 
 	/**
@@ -25,7 +27,7 @@ class Main {
 	static function mainTest() {
 		trace("Hello World!");
 
-		var myScript: Iris = new Iris(sys.io.File.getContent("./assets/test.hx"));
+		var myScript: Iris = new Iris(Resource.getString("assets/test.hx"));
 		myScript.execute();
 
 		var result = myScript.call("main"); // prints "Hello from Iris!"
@@ -59,7 +61,7 @@ class Main {
 	 * Test byte encoding.
 	**/
 	static function mainBytes() {
-		var myScript: Iris = new Iris(sys.io.File.getContent("./assets/bytes.hx"), {
+		var myScript: Iris = new Iris(Resource.getString("assets/bytes.hx"), {
 			autoRun: false,
 			autoPreset: false,
 			name: "bytes"
@@ -113,6 +115,21 @@ class Main {
 		}
 	}
 
+	/**
+	 * Test for HScript StringTools (using StringTools;)
+	**/
+	static function testStringTools() {
+		var myScript: Iris = new Iris(Resource.getString("assets/stringtools.hx"), {
+			name: "stringtools",
+			autoRun: false
+		});
+		myScript.execute();
+		myScript.call("main");
+	}
+
+	/**
+	 * Test for string interpolation in HScript.
+	**/
 	static function testStringInterpolation() {
 		function testFile() { // FILE TEST
 			trace('Testing String Interpolation, with a file');
@@ -146,9 +163,6 @@ class Main {
 			source.execute();
 			source.call("main", []);
 		}
-
-		testFile();
-		// testPureString();
 	}
 }
 

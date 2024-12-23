@@ -1,3 +1,21 @@
+# 1.1.2
+
+- Fixed `package;` (unnamed) crashing the script.
+- Script Package now gets saved in the parser.
+
+# 1.1.1
+
+- Added `package path;` syntax
+	- This gets ignored by the interpreter, its simply there to prevent any issues
+- Added `using` keyword
+	- Right now, this is sort of limited, as you can only use it with `StringTools` and `Lambda`
+- Fixed `#end` preprocessor value
+	- Your script will no longer crash if you make a code like
+		```haxe
+		#if openfl
+		trace("project is using the OpenFL library.");
+		#end
+		```
 # 1.1.0
 
 Collaborators in this update:

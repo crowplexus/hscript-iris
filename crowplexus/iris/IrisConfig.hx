@@ -15,6 +15,8 @@ class IrisConfig {
 	public var name: String = null;
 	public var autoRun: Bool = true;
 	public var autoPreset: Bool = true;
+	public var packageName: String = null;
+
 	@:unreflective public var localBlocklist: Array<String> = [];
 
 	/**
