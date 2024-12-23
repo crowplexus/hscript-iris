@@ -368,7 +368,6 @@ class Interp {
 
 	inline function warn(e: #if hscriptPos ErrorDef #else Error #end): Dynamic {
 		#if hscriptPos var e = new Error(e, curExpr.pmin, curExpr.pmax, curExpr.origin, curExpr.line); #end
-
 		Iris.warn(Printer.errorToString(e, showPosOnLog), #if hscriptPos posInfos() #else null #end);
 		return null;
 	}
@@ -505,7 +504,7 @@ class Interp {
 				returnValue = e == null ? null : expr(e);
 				throw SReturn;
 			case EImport(v, as):
-				final aliasStr = (as != null ? " named as " + as : ""); // for errors
+				final aliasStr = (as != null ? " named " + as : ""); // for errors
 				if (Iris.blocklistImports.contains(v)) {
 					error(ECustom("You cannot add a blacklisted import, for class " + v + aliasStr));
 					return null;

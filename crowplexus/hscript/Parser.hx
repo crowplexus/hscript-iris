@@ -142,7 +142,20 @@ class Parser {
 			["&&"],
 			["||"],
 			[
-				"=", "+=", "-=", "*=", "/=", "%=", "??" + "=", "<<=", ">>=", ">>>=", "|=", "&=", "^=", "=>"
+				"=",
+				"+=",
+				"-=",
+				"*=",
+				"/=",
+				"%=",
+				"??" + "=",
+				"<<=",
+				">>=",
+				">>>=",
+				"|=",
+				"&=",
+				"^=",
+				"=>"
 			],
 			["->"]
 		];
@@ -1855,7 +1868,7 @@ class Parser {
 		return preprocesorValues.get(id);
 	}
 
-	var preprocStack: Array<Bool>;
+	var preprocStack: Array<PreprocessStackValue>;
 
 	function parsePreproCond() {
 		var tk = token();
@@ -1895,20 +1908,20 @@ class Parser {
 			case "if":
 				var e = parsePreproCond();
 				if (evalPreproCond(e)) {
-					preprocStack.push(true);
+					preprocStack.push({r: true});
 					return token();
 				}
-				preprocStack.push(false);
+				preprocStack.push({r: false});
 				skipTokens();
 				return token();
 			case "else", "elseif" if (preprocStack.length > 0):
-				if (preprocStack[preprocStack.length - 1]) {
-					preprocStack[preprocStack.length - 1] = false;
+				if (preprocStack[preprocStack.length - 1].r) {
+					preprocStack[preprocStack.length - 1].r = false;
 					skipTokens();
 					return token();
 				} else if (id == "else") {
 					preprocStack.pop();
-					preprocStack.push(true);
+					preprocStack.push({r: true});
 					return token();
 				} else {
 					// elseif
@@ -1929,8 +1942,15 @@ class Parser {
 		var pos = readPos;
 		while (true) {
 			var tk = token();
-			if (tk == TEof)
-				error(EInvalidPreprocessor("Unclosed"), pos, pos);
+			if (tk == TEof) {
+				// @see https://github.com/CodenameCrew/hscript-improved/pull/5/
+				if (preprocStack.length != 0) {
+					error(EInvalidPreprocessor("Unclosed"), pos, pos);
+				} else {
+					trace("line: " + pos);
+					break;
+				}
+			}
 			if (preprocStack[spos] != obj) {
 				push(tk);
 				break;
@@ -2017,6 +2037,7 @@ class Parser {
 	}
 }
 
+@:structInit
 final class PreprocessStackValue {
 	public var r: Bool;
 
