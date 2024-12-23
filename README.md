@@ -59,7 +59,7 @@ Once this is done, go to your Project File, whether that be a build.hxml for Hax
 - [x] Improved Error Handling (**Completed-ish**)?
 - [x] Imports (i.e: `import ClassPackageAndName;`)
 - - [x] Import Aliases (i.e: `import ClassPackageAndName as ClassAlias;`)
-  - [ ] Using Keyword (i.e: `using StringTools;`)
+  - [ ] Using Keyword (partial?)
 - [x] Finals
 - [x] Enums
 - - [ ] Abstract Enums

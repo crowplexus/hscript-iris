@@ -19,4 +19,8 @@
 # Enables the analyzer optimizer
 --define analyzer-optimize
 
+--resource assets/stringtools.hx@assets/stringtools.hx
+--resource assets/bytes.hx@assets/bytes.hx
+--resource assets/test.hx@assets/test.hx
+
 ../extraParams.hxml

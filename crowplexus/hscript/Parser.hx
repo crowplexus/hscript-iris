@@ -962,6 +962,41 @@ class Parser {
 						error(ECustom("Typedef, unknown type " + t), tokenMin, tokenMax);
 						null;
 				}
+
+			case "using":
+				var path = [getIdent()];
+
+				while (true) {
+					var t = token();
+					if (t != TDot) {
+						push(t);
+						break;
+					}
+					t = token();
+					switch (t) {
+						case TId(id): path.push(id);
+						default: unexpected(t);
+					}
+				}
+				mk(EUsing(path.join(".")));
+			case "package":
+				// ignore package
+				var path = [getIdent()];
+
+				while (true) {
+					var t = token();
+					if (t != TDot) {
+						push(t);
+						break;
+					}
+					t = token();
+					switch (t) {
+						case TId(id): path.push(id);
+						default: unexpected(t);
+					}
+				}
+				// mk(EPackage(path.join(".")));
+				mk(EIgnore(false));
 			default:
 				null;
 		}

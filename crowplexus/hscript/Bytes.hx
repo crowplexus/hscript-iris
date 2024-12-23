@@ -58,6 +58,7 @@ enum abstract BytesExpr(ByteInt) from ByteInt to ByteInt {
 	var EImport = 27;
 	var EEnum = 28;
 	var EDirectValue = 29;
+	var EUsing = 30;
 }
 
 enum abstract BytesConst(ByteInt) from ByteInt to ByteInt {
@@ -531,6 +532,9 @@ class Bytes {
 				doEncodeExprType(EImport);
 				doEncodeString(v);
 				doEncodeString(as);
+			case EUsing(name):
+				doEncodeExprType(EUsing);
+				doEncodeString(name);
 		}
 		// bout.addString("__||__");
 	}
@@ -714,6 +718,9 @@ class Bytes {
 				var v = doDecodeString();
 				var as = doDecodeString();
 				EImport(v, as);
+			case EUsing:
+				var name = doDecodeString();
+				EUsing(name);
 			case 255:
 				null;
 				// default:

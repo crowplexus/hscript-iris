@@ -757,6 +757,8 @@ class Interp {
 				variables.set(enumName, obj);
 			case EDirectValue(value):
 				return value;
+			case EUsing(name):
+				useUsing(name);
 		}
 		return null;
 	}
@@ -795,6 +797,11 @@ class Interp {
 			}
 		}
 		restore(old);
+	}
+
+	static function isIterable(v: Dynamic): Bool {
+		// TODO: test for php and lua, they might have issues with this check
+		return v != null && v.iterator != null;
 	}
 
 	function makeIterator(v: Dynamic): Iterator<Dynamic> {
@@ -870,7 +877,82 @@ class Interp {
 		return v;
 	}
 
+	static var allUsings: Array<UsingEntry> = [
+		new UsingEntry("StringTools", function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+			if (f == "isEof") // has @:noUsing
+				return null;
+			switch (Type.typeof(o)) {
+				case(TFloat | TInt) if (f == "hex"):
+					return StringTools.hex(o, args[0]);
+				case TClass(String):
+					if (Reflect.hasField(StringTools, f)) {
+						var field = Reflect.field(StringTools, f);
+						if (Reflect.isFunction(field)) {
+							return Reflect.callMethod(StringTools, field, [o].concat(args));
+						}
+					}
+				default:
+			}
+			return null;
+		}),
+		new UsingEntry("Lambda", function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+			if (isIterable(o)) {
+				// TODO: Check if the values are Iterable<T>
+				if (Reflect.hasField(Lambda, f)) {
+					var field = Reflect.field(Lambda, f);
+					if (Reflect.isFunction(field)) {
+						return Reflect.callMethod(Lambda, field, [o].concat(args));
+					}
+				}
+			}
+			return null;
+		}),
+	];
+
+	function registerUsingLocal(name: String, call: UsingCall): UsingEntry {
+		var entry = new UsingEntry(name, call);
+		usings.push(entry);
+		return entry;
+	}
+
+	function registerUsingGlobal(name: String, call: UsingCall): UsingEntry {
+		var entry = new UsingEntry(name, call);
+		allUsings.push(entry);
+		return entry;
+	}
+
+	function useUsing(name: String): Void {
+		// turning off formatter because wtf formatter
+		for (us in allUsings) {
+			if (us.name == name) {
+				usings.push(us);
+				return;
+			}
+		}
+
+		warn(ECustom("Unknown using class " + name));
+	}
+
+	/**
+	 * List of components that allow using static methods on objects.
+	 * This only works if you do
+	 * ```haxe
+	 * var result = "Hello ".trim();
+	 * ```
+	 * and not
+	 * ```haxe
+	 * var trim = "Hello ".trim;
+	 * var result = trim();
+	 * ```
+	 */
+	var usings: Array<UsingEntry> = [];
+
 	function fcall(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+		for (_using in usings) {
+			var v = _using.call(o, f, args);
+			if (v != null)
+				return v;
+		}
 		return call(o, get(o, f), args);
 	}
 
@@ -883,5 +965,17 @@ class Interp {
 		if (c == null)
 			c = resolve(cl);
 		return Type.createInstance(c, args);
+	}
+}
+
+typedef UsingCall = (o: Dynamic, f: String, args: Array<Dynamic>) -> Dynamic;
+
+class UsingEntry {
+	public var name: String;
+	public var call: UsingCall;
+
+	public function new(name: String, call: UsingCall) {
+		this.name = name;
+		this.call = call;
 	}
 }
