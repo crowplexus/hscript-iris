@@ -22,10 +22,10 @@
 
 package crowplexus.hscript;
 
-import haxe.Unserializer;
-import haxe.Serializer;
-import crowplexus.hscript.Types.ByteInt;
 import crowplexus.hscript.Expr;
+import crowplexus.hscript.Types.ByteInt;
+import haxe.Serializer;
+import haxe.Unserializer;
 
 enum abstract BytesExpr(ByteInt) from ByteInt to ByteInt {
 	var EIdent = 0;

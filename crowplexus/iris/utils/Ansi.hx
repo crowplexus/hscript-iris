@@ -1,6 +1,7 @@
 package crowplexus.iris.utils;
 
 #if (haxe_ver < 4.3) @:enum #else enum #end
+
 abstract AnsiColor(Int) {
 	final BLACK = 0;
 	final RED = 1;
@@ -17,6 +18,7 @@ abstract AnsiColor(Int) {
 }
 
 #if (haxe_ver < 4.3) @:enum #else enum #end
+
 abstract AnsiTextAttribute(Int) {
 	/**
 	 * All colors/text-attributes off
@@ -76,7 +78,7 @@ abstract AnsiTextAttribute(Int) {
 	final STRIKTHROUGH_OFF = 29;
 }
 
-class Ansi {
+class Ansi implements crowplexus.iris.IrisUsingClass {
 	/**
 	 * ANSI escape sequence header
 	 */

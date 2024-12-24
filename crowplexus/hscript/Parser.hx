@@ -1055,43 +1055,17 @@ class Parser {
 				}
 
 			case "using":
-				var path = [getIdent()];
-
-				while (true) {
-					var t = token();
-					if (t != TDot) {
-						push(t);
-						break;
-					}
-					t = token();
-					switch (t) {
-						case TId(id): path.push(id);
-						default: unexpected(t);
-					}
-				}
+				var path = parsePath();
 				mk(EUsing(path.join(".")));
 			case "package":
 				// ignore package
 				var tk = token();
-				if (tk == TSemicolon) {
-					push(tk);
-					return mk(EIgnore(false));
-				}
 				push(tk);
-				var path = [getIdent()];
+				packageName = "";
+				if (tk == TSemicolon)
+					return mk(EIgnore(false));
 
-				while (true) {
-					tk = token();
-					if (tk != TDot) {
-						push(tk);
-						break;
-					}
-					tk = token();
-					switch (tk) {
-						case TId(id): path.push(id);
-						default: unexpected(tk);
-					}
-				}
+				var path = parsePath();
 				// mk(EPackage(path.join(".")));
 				packageName = path.join(".");
 				mk(EIgnore(false));
