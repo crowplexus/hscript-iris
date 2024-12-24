@@ -524,7 +524,29 @@ class Interp {
 					// for all the "Colour" enjoyers :D
 				}
 				return null; // yeah. -Crow
-
+			case EUsing(name):
+				if (Iris.blocklistImports.contains(name)) {
+					error(ECustom("You cannot add a blacklisted using, for class " + name));
+					return null;
+				}
+				
+				var n = Tools.last(name.split("."));
+				var c: Dynamic;
+				if (imports.exists(n))
+					c = imports.get(n);
+				else
+					c = getOrImportClass(name);
+				
+				if (c == null) // if it's still null then throw an error message.
+					return warn(ECustom("Unknown using class " + name));
+				else {
+					useUsing(c);
+					if (!imports.exists(n))
+						imports.set(n, c);
+					else
+						return c;
+				}
+				return null;
 			case EFunction(params, fexpr, name, _):
 				var capturedLocals = duplicate(locals);
 				var me = this;
@@ -756,10 +778,24 @@ class Interp {
 				variables.set(enumName, obj);
 			case EDirectValue(value):
 				return value;
-			case EUsing(name):
-				useUsing(name);
 		}
 		return null;
+	}
+	
+	function useUsing(cls: Class<Dynamic>): Void {
+		// turning off formatter because wtf formatter
+		for (us in usings) {
+			if (us.cls == cls)
+				return;
+		}
+		for (us in allUsings) {
+			if (us.cls == cls) {
+				usings.push(us);
+				return;
+			}
+		}
+		
+		registerUsingLocal(cls, makeUsingCall(cls));
 	}
 
 	function doWhileLoop(econd, e) {
@@ -915,7 +951,7 @@ class Interp {
 	}
 
 	static var allUsings: Array<UsingEntry> = [
-		new UsingEntry("StringTools", function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+		new UsingEntry(StringTools, function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
 			if (f == "isEof") // has @:noUsing
 				return null;
 			switch (Type.typeof(o)) {
@@ -931,8 +967,14 @@ class Interp {
 				default:
 			}
 			return null;
+		}, function(o: Dynamic, ?f: String):Bool {
+			return switch (Type.typeof(o)) {
+				case (TFloat | TInt): (f == 'hex');
+				case TClass(String): (f != 'hex');
+				default: false;
+			}
 		}),
-		new UsingEntry("Lambda", function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
+		new UsingEntry(Lambda, function(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
 			if (isIterable(o)) {
 				// TODO: Check if the values are Iterable<T>
 				if (Reflect.hasField(Lambda, f)) {
@@ -943,31 +985,33 @@ class Interp {
 				}
 			}
 			return null;
+		}, function(o: Dynamic, ?f: String):Bool {
+			return isIterable(o);
 		}),
 	];
+	
+	function makeUsingCall(cls: Class<Dynamic>): UsingCall {
+		return function(o: Dynamic, f:String, args:Array<Dynamic>): Dynamic {
+			if (Reflect.hasField(cls, f)) {
+				var field = Reflect.field(cls, f);
+				if (Reflect.isFunction(field)) {
+					return Reflect.callMethod(cls, field, [o].concat(args));
+				}
+			}
+			return null;
+		};
+	}
 
-	function registerUsingLocal(name: String, call: UsingCall): UsingEntry {
-		var entry = new UsingEntry(name, call);
+	function registerUsingLocal(cls: Class<Dynamic>, call: UsingCall, ?check: UsingCheck): UsingEntry {
+		var entry = new UsingEntry(cls, call, check);
 		usings.push(entry);
 		return entry;
 	}
 
-	function registerUsingGlobal(name: String, call: UsingCall): UsingEntry {
-		var entry = new UsingEntry(name, call);
+	function registerUsingGlobal(cls: Class<Dynamic>, call: UsingCall, ?check: UsingCheck): UsingEntry {
+		var entry = new UsingEntry(cls, call, check);
 		allUsings.push(entry);
 		return entry;
-	}
-
-	function useUsing(name: String): Void {
-		// turning off formatter because wtf formatter
-		for (us in allUsings) {
-			if (us.name == name) {
-				usings.push(us);
-				return;
-			}
-		}
-
-		warn(ECustom("Unknown using class " + name));
 	}
 
 	/**
@@ -985,12 +1029,15 @@ class Interp {
 	var usings: Array<UsingEntry> = [];
 
 	function fcall(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
-		for (_using in usings) {
-			var v = _using.call(o, f, args);
-			if (v != null)
-				return v;
+		var func = get(o, f);
+		if (func == null) {
+			for (_using in usings) {
+				if (_using.cls == o) continue;
+				if (_using.isTypeValid(o, f) && _using.hasFunction(f))
+					return _using.call(o, f, args);
+			}
 		}
-		return call(o, get(o, f), args);
+		return call(o, func, args);
 	}
 
 	function call(o: Dynamic, f: Dynamic, args: Array<Dynamic>): Dynamic {
@@ -1006,13 +1053,29 @@ class Interp {
 }
 
 typedef UsingCall = (o: Dynamic, f: String, args: Array<Dynamic>) -> Dynamic;
+typedef UsingCheck = (o: Dynamic, ?f: String) -> Bool;
 
 class UsingEntry {
 	public var name: String;
 	public var call: UsingCall;
+	public var check: UsingCheck;
+	public var cls: Class<Dynamic>;
 
-	public function new(name: String, call: UsingCall) {
-		this.name = name;
+	public function new(cls: Class<Dynamic>, call: UsingCall, ?check: UsingCheck) {
+		this.name = Type.getClassName(cls);
+		this.check = check;
 		this.call = call;
+		this.cls = cls;
+	}
+	
+	public inline function isTypeValid(o: Dynamic, ?f: String): Bool {
+		if (check == null)
+			return true;
+		else
+			return check(o, f);
+	}
+	
+	public inline function hasFunction(f: String): Bool {
+		return (Reflect.hasField(cls, f) && Reflect.isFunction(Reflect.field(cls, f)));
 	}
 }
