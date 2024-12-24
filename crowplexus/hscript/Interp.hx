@@ -966,14 +966,14 @@ class Interp {
 		};
 	}
 
-	function registerUsingLocal(cls: Class<Dynamic>, call: UsingCall): UsingEntry {
-		var entry = new UsingEntry(cls, call);
+	function registerUsingLocal(cls: Class<Dynamic>, call: UsingCall, ?check: UsingCheck): UsingEntry {
+		var entry = new UsingEntry(cls, call, check);
 		usings.push(entry);
 		return entry;
 	}
 
-	function registerUsingGlobal(cls: Class<Dynamic>, call: UsingCall): UsingEntry {
-		var entry = new UsingEntry(cls, call);
+	function registerUsingGlobal(cls: Class<Dynamic>, call: UsingCall, ?check: UsingCheck): UsingEntry {
+		var entry = new UsingEntry(cls, call, check);
 		allUsings.push(entry);
 		return entry;
 	}
