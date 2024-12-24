@@ -524,7 +524,29 @@ class Interp {
 					// for all the "Colour" enjoyers :D
 				}
 				return null; // yeah. -Crow
-
+			case EUsing(name):
+				if (Iris.blocklistImports.contains(name)) {
+					error(ECustom("You cannot add a blacklisted using, for class " + name));
+					return null;
+				}
+				
+				var n = Tools.last(name.split("."));
+				var c: Dynamic;
+				if (imports.exists(n))
+					c = imports.get(n);
+				else
+					c = getOrImportClass(name);
+				
+				if (c == null) // if it's still null then throw an error message.
+					return warn(ECustom("Unknown using class " + name));
+				else {
+					useUsing(c);
+					if (!imports.exists(n))
+						imports.set(n, c);
+					else
+						return c;
+				}
+				return null;
 			case EFunction(params, fexpr, name, _):
 				var capturedLocals = duplicate(locals);
 				var me = this;
@@ -756,10 +778,24 @@ class Interp {
 				variables.set(enumName, obj);
 			case EDirectValue(value):
 				return value;
-			case EUsing(name):
-				useUsing(name);
 		}
 		return null;
+	}
+	
+	function useUsing(cls: Class<Dynamic>): Void {
+		// turning off formatter because wtf formatter
+		for (us in usings) {
+			if (us.cls == cls)
+				return;
+		}
+		for (us in allUsings) {
+			if (us.cls == cls) {
+				usings.push(us);
+				return;
+			}
+		}
+		
+		registerUsingLocal(cls, makeUsingCall(cls));
 	}
 
 	function doWhileLoop(econd, e) {
@@ -978,23 +1014,6 @@ class Interp {
 		return entry;
 	}
 
-	function useUsing(name: String): Void {
-		// turning off formatter because wtf formatter
-		for (us in allUsings) {
-			if (us.name == name) {
-				usings.push(us);
-				return;
-			}
-		}
-		var cls: Dynamic = Type.resolveClass(name);
-		if (cls == null) {
-			warn(ECustom("Unknown using class " + name));
-			return;
-		}
-		
-		registerUsingLocal(cls, makeUsingCall(cls));
-	}
-
 	/**
 	 * List of components that allow using static methods on objects.
 	 * This only works if you do
@@ -1010,11 +1029,15 @@ class Interp {
 	var usings: Array<UsingEntry> = [];
 
 	function fcall(o: Dynamic, f: String, args: Array<Dynamic>): Dynamic {
-		for (_using in usings) {
-			if (_using.isTypeValid(o, f) && _using.hasFunction(f))
-				return _using.call(o, f, args);
+		var func = get(o, f);
+		if (func == null) {
+			for (_using in usings) {
+				if (_using.cls == o) continue;
+				if (_using.isTypeValid(o, f) && _using.hasFunction(f))
+					return _using.call(o, f, args);
+			}
 		}
-		return call(o, get(o, f), args);
+		return call(o, func, args);
 	}
 
 	function call(o: Dynamic, f: Dynamic, args: Array<Dynamic>): Dynamic {
