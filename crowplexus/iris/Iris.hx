@@ -1,5 +1,6 @@
 package crowplexus.iris;
 
+import haxe.CallStack;
 import crowplexus.iris.utils.Ansi;
 import crowplexus.hscript.proxy.ProxyType;
 import haxe.ds.StringMap;
@@ -372,7 +373,11 @@ class Iris {
 		#end
 		catch (e:haxe.Exception) {
 			var pos = isFunction ? this.interp.posInfos() : Iris.getDefaultPos(this.name);
-			Iris.error(Std.string(e), pos);
+			Iris.error(
+				Std.string(e)
+					#if IRIS_DEBUG + "\n" + CallStack.toString(CallStack.exceptionStack(true)) #end,
+				pos
+			);
 		}
 		// @formatter:on
 		return null;

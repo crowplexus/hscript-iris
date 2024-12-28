@@ -22,6 +22,7 @@
 
 package crowplexus.hscript;
 
+import haxe.Constraints.Function;
 import Type.ValueType;
 import crowplexus.hscript.Expr;
 import crowplexus.hscript.Tools;
@@ -472,19 +473,50 @@ class Interp {
 						null;
 				}
 			case ECall(e, params):
-				var args = new Array();
-				for (p in params)
-					args.push(expr(p));
-
 				switch (Tools.expr(e)) {
 					case EField(e, f, s):
-						var obj = expr(e);
-						if (obj == null)
-							if (!s)
-								error(EInvalidAccess(f));
-						return fcall(obj, f, args);
+						var obj: Dynamic = expr(e);
+
+						if (obj == null) {
+							if (s == true)
+								return null;
+							error(EInvalidAccess(f));
+						}
+
+						if (f == "bind" && Reflect.isFunction(obj)) {
+							var obj: Function = obj;
+							if (params.length == 0) { // Special case for function.bind()
+								return Reflect.makeVarArgs(function(ar: Array<Dynamic>) {
+									return obj();
+								});
+							}
+
+							// bind(_, false) => function(a1) return obj(a1, false);
+							// bind(false, _) => function(a2) return obj(false, a2);
+							// bind(_, _) => function(a1, a2) return obj(a1, a2);
+
+							var args = [];
+							for (p in params) {
+								switch (Tools.expr(p)) {
+									case EIdent(_):
+										args.push(null);
+									default:
+										args.push(p);
+								}
+							}
+							var me = this;
+							// TODO: make it increment the depth?
+							return Reflect.makeVarArgs(function(ar: Array<Dynamic>) {
+								var i = 0;
+								var actualArgs = [for (a in args) if (a != null) me.expr(a) else ar[i++]];
+								return Reflect.callMethod(null, obj, actualArgs);
+							});
+						}
+
+						return fcall(obj, f, [for (p in params) expr(p)]);
 					default:
-						return call(null, expr(e), args);
+						var field = expr(e);
+						return call(null, field, [for (p in params) expr(p)]);
 				}
 			case EIf(econd, e1, e2):
 				return if (expr(econd) == true) expr(e1) else if (e2 == null) null else expr(e2);

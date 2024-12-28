@@ -17,12 +17,10 @@ class Main {
 		// mainTest();
 		// mainBytes();
 		// testIndenticalNames();
-<<<<<<< HEAD
 		// testStringInterpolation();
-		testStringTools();
-=======
-		testUsing();
->>>>>>> def329241c94ff5185f4388592f1288217453e1e
+		// fullTestParseEntireSourceCode();
+		// testUsing();
+		testBind();
 	}
 
 	/**
@@ -78,7 +76,6 @@ class Main {
 
 		// var printer = new Printer();
 		// trace(printer.exprToString(myScript.expr));
-		// fullTestParseEntireSourceCode()
 	}
 
 	/*
@@ -167,6 +164,18 @@ class Main {
 			source.execute();
 			source.call("main", []);
 		}
+	}
+
+	/**
+	 * Test for Hscript - function.bind()
+	 */
+	static function testBind() {
+		var myScript: Iris = new Iris(Resource.getString("assets/bind.hx"), {
+			name: "bind",
+			autoRun: false
+		});
+		myScript.execute();
+		myScript.call("main");
 	}
 }
 
