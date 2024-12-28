@@ -17,6 +17,11 @@ function main() {
 	var test5 = test.bind(_, _);
 	test5(1, 2);
 
-	var test5 = test.bind(_, "hello");
-	test5(1, 2);
+	try {
+		var test5 = test.bind(_, 4);
+		test5();
+		trace("Should have thrown an error");
+	} catch (e:Dynamic) {
+		trace(e);
+	}
 }

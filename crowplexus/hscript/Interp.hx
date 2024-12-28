@@ -495,11 +495,13 @@ class Interp {
 							// bind(false, _) => function(a2) return obj(false, a2);
 							// bind(_, _) => function(a1, a2) return obj(a1, a2);
 
+							var totalNeeded = 0;
 							var args = [];
 							for (p in params) {
 								switch (Tools.expr(p)) {
 									case EIdent(_):
 										args.push(null);
+										totalNeeded++;
 									default:
 										args.push(p);
 								}
@@ -507,6 +509,8 @@ class Interp {
 							var me = this;
 							// TODO: make it increment the depth?
 							return Reflect.makeVarArgs(function(ar: Array<Dynamic>) {
+								if (ar.length < totalNeeded)
+									error(ECustom("Too few arguments")); // TODO: make it say like "Not enough arguments, expected a:Int"
 								var i = 0;
 								var actualArgs = [for (a in args) if (a != null) me.expr(a) else ar[i++]];
 								return Reflect.callMethod(null, obj, actualArgs);
